@@ -2,6 +2,95 @@
 
 Baka Http
 
+## Table of Contents
+1. [Testing](#markdown-header-testing)
+2. [REST CRUD](#markdown-header-routes)
+    2.1 [Controller Configuration](#markdown-header-controllers)
+4. [QueryParser](#markdown-header-QueryParser)
+   
+## Testing
+```
+codecept run
+```
+
+## Routes Configuration
+
+To avoid having to create Controller for CRUD api we provide the \Baka\Http\Rest\CrudController
+
+Add to your routes.php
+
+```
+<?php
+/**
+ * Need to understand if using this can be a performance disadvantage in the future
+ */
+$defaultCrudRoutes = [
+    'business',
+    'clients',
+    'contacts',
+    'modules',
+    'customFields' => 'custom-fields',
+    'leads',
+    'products',
+    'productType' => 'product-type',
+    'users',
+    'sellers',
+];
+
+foreach ($defaultCrudRoutes as $key => $route) {
+
+    //set the controller name
+    $name = is_int($key) ? $route : $key;
+    $controllerName = ucfirst($name) . 'Controller';
+
+    $application->get('/v1/' . $route, [
+        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
+        'index',
+    ]);
+
+    $application->post('/v1/' . $route, [
+        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
+        'create',
+    ]);
+
+    $application->get('/v1/' . $route . '/{id}', [
+        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
+        'getById',
+    ]);
+
+    $application->put('/v1/' . $route . '/{id}', [
+        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
+        'edit',
+    ]);
+
+    $application->delete('/v1/' . $route . '/{id}', [
+        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
+        'delete',
+    ]);
+}
+```
+
+## Controller configuration
+
+Add
+
+```
+<?php
+
+class AnyController extends Baka\Http\Rest\CrudController
+
+/**
+ * set objects
+ *
+ * @return void
+ */
+public function onConstruct()
+{
+    $this->model = new Clients();
+    $this->customModel = new ClientsCustomFields();
+}
+```
+
 
 # QueryParser
 

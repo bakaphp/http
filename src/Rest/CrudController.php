@@ -3,6 +3,7 @@
 namespace Baka\Http\Rest;
 
 use Exception;
+use Phalcon\Paginator\Adapter\Model as PaginatorModel;
 use \Baka\Http\QueryParser;
 use \Phalcon\Mvc\Controller;
 
@@ -59,8 +60,23 @@ class CrudController extends BaseController
         $parse = new QueryParser($this->request->getQuery());
         $params = $parse->request();
 
-        //get the results
-        return $this->respond($this->model->find($params));
+        $results = $this->model->find($params);
+
+        //this means the want the response in a vuejs format
+        if ($this->request->hasQuery('format', 'string')) {
+
+            $paginator = new PaginatorModel([
+                "data" => $results,
+                "limit" => $this->request->getQuery('limit', 'int'),
+                "page" => $this->request->getQuery('page', 'int'),
+            ]);
+
+            // Get the paginated results
+            $results = (array) $paginator->getPaginate();
+        }
+
+        return $this->respond($results);
+
     }
 
     /**
@@ -73,10 +89,6 @@ class CrudController extends BaseController
      */
     public function create($id = null)
     {
-        if ($this->request->hasPost('custom_fields')) {
-            $this->model->custom_fields = $this->request->getPost('custom_fields');
-        }
-
         //try to save all the fields we allow
         if ($this->model->save($this->request->getPost(), $this->createFields)) {
             return $this->response($this->model->toArray());
