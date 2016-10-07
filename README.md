@@ -5,7 +5,7 @@ Baka Http
 ## Table of Contents
 1. [Testing](#markdown-header-testing)
 2. [REST CRUD](#markdown-header-routes)
-    2.1 [Controller Configuration](#markdown-header-controllers)
+    1. [Controller Configuration](#markdown-header-controllers)
 4. [QueryParser](#markdown-header-QueryParser)
    
 ## Testing
@@ -99,6 +99,8 @@ Parse GET request for a API , giving the user the correct phalcon model params t
 `GET - /v1/?q=(searchField1:value1,searchField2:value2)&fields=id_pct,alias,latitude,longitude,category,chofer,phone,coords,last_report&limit=1&page=2&sort=id_pct|desc`
 
 ```
+<?php
+
 $parse = new QueryParser($this->request->getQuery());
 $parse->request();
 

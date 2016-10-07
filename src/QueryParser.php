@@ -67,7 +67,7 @@ class QueryParser
         }
 
         //sort
-        if (array_key_exists('sort', $this->request)) {
+        if (array_key_exists('sort', $this->request) && !empty($this->request['sort'])) {
             $sort = $this->request['sort'];
             $sort = str_replace('|', ' ', $sort);
 
