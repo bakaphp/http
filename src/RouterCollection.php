@@ -2,6 +2,10 @@
 
 namespace Baka\Http;
 
+use \Exception;
+use \Phalcon\Mvc\Micro;
+use \Phalcon\Mvc\Micro\Collection as MicroCollection;
+
 /**
  * Router collection for Micro Phalcon API, insted of having to do
  *
@@ -25,6 +29,7 @@ namespace Baka\Http;
  *     'MyDealer\Controllers\IndexController',
  *      'index',
  *  ]);
+ *
  *  $router->mount();
  */
 class RouterCollection
