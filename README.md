@@ -37,35 +37,37 @@ $defaultCrudRoutes = [
     'sellers',
 ];
 
+$router = new RouterCollection($application);
+
 foreach ($defaultCrudRoutes as $key => $route) {
 
     //set the controller name
     $name = is_int($key) ? $route : $key;
     $controllerName = ucfirst($name) . 'Controller';
 
-    $application->get('/v1/' . $route, [
-        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
-        'index',
+    $router->get('/v1/' . $route, [
+      'Mesocom\Controllers\\' . $controllerName,
+      'index',
     ]);
 
-    $application->post('/v1/' . $route, [
-        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
-        'create',
+    $router->post('/v1/' . $route, [
+      'Mesocom\Controllers\\' . $controllerName,
+      'create',
     ]);
 
-    $application->get('/v1/' . $route . '/{id}', [
-        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
-        'getById',
+    $router->get('/v1/' . $route . '/{id}', [
+      'Mesocom\Controllers\\' . $controllerName,
+      'getById',
     ]);
 
-    $application->put('/v1/' . $route . '/{id}', [
-        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
-        'edit',
+    $router->put('/v1/' . $route . '/{id}', [
+      'Mesocom\Controllers\\' . $controllerName,
+      'edit',
     ]);
-
-    $application->delete('/v1/' . $route . '/{id}', [
-        FactoryManager::getInstance('Mesocom\Controllers\\' . $controllerName),
-        'delete',
+    
+    $router->delete('/v1/' . $route . '/{id}', [
+      'Mesocom\Controllers\\' . $controllerName,
+      'delete',
     ]);
 }
 ```
@@ -97,6 +99,8 @@ public function onConstruct()
 Parse GET request for a API , giving the user the correct phalcon model params to perform a search
 
 `GET - /v1/?q=(searchField1:value1,searchField2:value2)&fields=id_pct,alias,latitude,longitude,category,chofer,phone,coords,last_report&limit=1&page=2&sort=id_pct|desc`
+`GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value]` //filter by relationships
+
 
 ```
 <?php

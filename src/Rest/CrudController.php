@@ -24,14 +24,14 @@ class CrudController extends BaseController
      *
      * @var array
      */
-    protected $createFields;
+    protected $createFields = [];
 
     /**
      * fields we accept to update
      *
      * @var array
      */
-    protected $updateFields;
+    protected $updateFields = [];
 
     /**
      * the model that interacts witht his controler
