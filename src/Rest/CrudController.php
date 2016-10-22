@@ -63,7 +63,7 @@ class CrudController extends BaseController
         $results = $this->model->find($params);
 
         //this means the want the response in a vuejs format
-        if ($this->request->hasQuery('format', 'string')) {
+        if ($this->request->hasQuery('format')) {
 
             $paginator = new PaginatorModel([
                 "data" => $results,
@@ -75,8 +75,7 @@ class CrudController extends BaseController
             $results = (array) $paginator->getPaginate();
         }
 
-        return $this->respond($results);
-
+        return $this->response($results);
     }
 
     /**
