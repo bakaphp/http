@@ -69,6 +69,11 @@ foreach ($defaultCrudRoutes as $key => $route) {
       'Mesocom\Controllers\\' . $controllerName,
       'delete',
     ]);
+    
+    /**
+    * Mounting routes 
+    */
+    $router->mount();
 }
 ```
 
