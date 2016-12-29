@@ -6,8 +6,8 @@ Baka Http
 1. [Testing](#markdown-header-testing)
 2. [REST CRUD](#markdown-header-routes)
     1. [Controller Configuration](#markdown-header-controllers)
-4. [QueryParser](#markdown-header-QueryParser)
-   
+3. [QueryParser](#markdown-header-QueryParser)
+
 ## Testing
 ```
 codecept run
@@ -142,11 +142,11 @@ $parse->request();
 # API Custom Fields CRUD
 
 The CRUD handles the default behaviero:
- - GET /v1/leads -> get all
- - GET /v1/leads/1 -> get one
- - POST /v1/leads -> create
- - PUT /v1/leads/1 -> update
- - DELETE /v1/leads/1 -> delete
+- GET /v1/leads -> get all
+- GET /v1/leads/1 -> get one
+- POST /v1/leads -> create
+- PUT /v1/leads/1 -> update
+- DELETE /v1/leads/1 -> delete
 
 In other to use the custom fields you need to extend you controller from CrudCustomFieldsController and define the method onConstruct on this method you define the model of the custom field and the model of the value of this custom fields
 
@@ -165,8 +165,10 @@ Thats it, your controller now manages the custom fields as if they wher properti
 Just extend your API controller from CrudController and you will have the following functions
 
 The CRUD handles the default behaviero:
- - GET /v1/leads -> get all
- - GET /v1/leads/1 -> get one
- - POST /v1/leads -> create
- - PUT /v1/leads/1 -> update
- - DELETE /v1/leads/1 -> delete
+- GET /v1/leads -> get all
+- GET /v1/leads/1 -> get one
+- POST /v1/leads -> create
+- PUT /v1/leads/1 -> update
+- DELETE /v1/leads/1 -> delete
+
+createFields and updateFields are needed to be define in other to create the field
