@@ -2,10 +2,10 @@
 
 namespace Baka\Http\Rest;
 
+use Baka\Http\QueryParser;
 use Exception;
+use Phalcon\Mvc\Controller;
 use Phalcon\Paginator\Adapter\Model as PaginatorModel;
-use \Baka\Http\QueryParser;
-use \Phalcon\Mvc\Controller;
 
 /**
  * Default REST API Base Controller
@@ -86,7 +86,7 @@ class CrudController extends BaseController
      *
      * @return Phalcon\Http\Response
      */
-    public function create($id = null)
+    public function create()
     {
         //try to save all the fields we allow
         if ($this->model->save($this->request->getPost(), $this->createFields)) {
@@ -105,7 +105,7 @@ class CrudController extends BaseController
      *
      * @return Phalcon\Http\Response
      */
-    public function getById($id)
+    public function getById(int $id)
     {
         //find the info
         $objectInfo = $this->model->findFirst([
@@ -128,7 +128,7 @@ class CrudController extends BaseController
      *
      * @return Phalcon\Http\Response
      */
-    public function edit($id)
+    public function edit(int $id)
     {
         if ($objectInfo = $this->model->findFirst($id)) {
             //update
@@ -151,7 +151,7 @@ class CrudController extends BaseController
      *
      * @return Phalcon\Http\Response
      */
-    public function delete($id)
+    public function delete(int $id)
     {
         if ($objectInfo = $this->model->findFirst($id)) {
 

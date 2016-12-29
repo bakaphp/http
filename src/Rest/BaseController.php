@@ -22,7 +22,6 @@ class BaseController extends Controller
      */
     public function response($content, int $statusCode = 200, string $statusMessage = 'OK'): Response
     {
-        $di = \Phalcon\DI::getDefault();
 
         $response = [
             'statusCode' => $statusCode,
@@ -30,8 +29,8 @@ class BaseController extends Controller
             'content' => $content,
         ];
 
-        if ($di->getConfig()->application->debug->logRequest) {
-            $di->getLog('request')->addInfo('RESPONSE', $response);
+        if ($this->config->application->debug->logRequest) {
+            $this->log->addInfo('RESPONSE', $response);
         }
 
         // Create a response since it's an ajax
