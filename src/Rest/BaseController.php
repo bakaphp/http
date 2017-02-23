@@ -22,11 +22,7 @@ class BaseController extends Controller
      */
     public function response($content, int $statusCode = 200, string $statusMessage = 'OK'): Response
     {
-<<<<<<< HEAD
-        $di = \Phalcon\DI::getDefault();
-=======
 
->>>>>>> b164f1ddff6a3b9696fc7c3944edc9eee86b4033
         $response = [
             'statusCode' => $statusCode,
             'statusMessage' => $statusMessage,
