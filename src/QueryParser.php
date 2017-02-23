@@ -220,10 +220,12 @@ class QueryParser extends \Phalcon\Di\Injectable
                 $conditions .= " AND {$field} = ?{$key}";
             }
 
-            foreach ($betweenMap as $key => $fields) {
-                $binds = count($values);
-                $conditions .= ' AND ' . $key . ' BETWEEN ?' . $binds . ' AND ?' . ($binds + 1);
-                $values = array_merge($values, $fields);
+            if (isset($betweenMap)) {
+                foreach ($betweenMap as $key => $fields) {
+                    $binds = count($values);
+                    $conditions .= ' AND ' . $key . ' BETWEEN ?' . $binds . ' AND ?' . ($binds + 1);
+                    $values = array_merge($values, $fields);
+                }
             }
 
             if ($hasSubquery) {
