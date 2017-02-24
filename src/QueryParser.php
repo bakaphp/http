@@ -15,7 +15,7 @@ namespace Baka\Http;
  *   Partials:
  *     offset=20
  */
-class QueryParser
+class QueryParser extends \Phalcon\Di\Injectable
 {
     /**
      * @var array
@@ -41,17 +41,28 @@ class QueryParser
      */
     public function request(): array
     {
-        $params = '';
-        $isSearch = false;
+        $params = [
+            'params' => '',
+            'subquery' => '',
+        ];
 
-        //verify the user is search for something
+        $isSearch = false;
+        $hasSubquery = false;
+
+        //verify the user is searching for something
         if (array_key_exists('q', $this->request)) {
-            $params = $this->request['q'];
+            $params['params'] = $this->request['q'];
             $isSearch = true;
         }
 
+        //verify the request has a subquery
+        if (array_key_exists('subq', $this->request)) {
+            $params['subquery'] = $this->request['subq'];
+            $hasSubquery = true;
+        }
+
         //initialize the model params
-        $modelSearchParams = $this->prepareSearch($params, $isSearch);
+        $modelSearchParams = $this->prepareSearch($params, $isSearch, $hasSubquery);
 
         //filter the field
         if (array_key_exists('fields', $this->request)) {
@@ -115,12 +126,72 @@ class QueryParser
     }
 
     /**
+     * Parses out the subquery parameters from a request.
+     *
+     * in = ::, not in = !::
+     *
+     * Unparsed, they will look like this:
+     *    internet_special(id::vehicles_id)
+     * Parsed:
+     *     Array('action' => in, 'firstField' => id, 'secondField' => vehicles_id,'model' => MyDealer\Models\InternetSpecial)
+     *
+     * *
+     * @param  string $unparsed Unparsed search string
+     * @return array            An array of fieldname=>value search parameters
+     */
+    protected function parseSubquery(string $unparsed): array
+    {
+        $unparsed = urldecode($unparsed);
+        // Strip parens that come with the request string
+        $tableName = explode("(", $unparsed, 2);
+        //print_r($tableName);die();
+        $tableName = strtolower($tableName[0]);
+
+        $modelName = str_replace('_', ' ', $tableName);
+        $modelName = str_replace(' ', '', ucwords($modelName));
+
+        //Add the namespace to the model name
+        $model = $this->config['namespace']['models'] . '\\' . $modelName;
+
+        $unparsed = str_replace($tableName, '', $unparsed);
+        $unparsed = trim($unparsed, '()');
+
+        // Now we have an array of "key:value" strings.
+        $splitFields = explode(',', $unparsed);
+
+        if (strpos($splitFields[0], '!::') !== false) {
+            $action = 'not in';
+            $fieldsToRelate = explode('!::', $splitFields[0]);
+        } elseif (strpos($splitFields[0], '::') !== false) {
+            $action = 'in';
+            $fieldsToRelate = explode('::', $splitFields[0]);
+        } else {
+            throw new \Exception("Error Processing Subquery", 1);
+        }
+
+        $subquery = [
+            'action' => $action,
+            'firstField' => $fieldsToRelate[0],
+            'secondField' => $fieldsToRelate[1],
+            'model' => $model,
+        ];
+
+        /*// Split the strings at their colon, set left to key, and right to value.
+        foreach ($splitFields as $field) {
+        $splitField = explode(':', $field);
+        $mapped[$splitField[0]] = $splitField[1];
+        }*/
+
+        return $subquery;
+    }
+
+    /**
      * Prepare conditions to search in record
      *
      * @param  string $unparsed
      * @return array
      */
-    protected function prepareSearch(string $unparsed, bool $isSearch = false): array
+    protected function prepareSearch(array $unparsed, bool $isSearch = false, $hasSubquery = false): array
     {
         $statement = [
             'conditions' => "1 = 1",
@@ -128,17 +199,38 @@ class QueryParser
         ];
 
         if ($isSearch) {
-            $mapped = $this->parseSearchParameters($unparsed);
+            $mapped = $this->parseSearchParameters($unparsed['params']);
             $conditions = '1 = 1';
-            $keys = array_keys($mapped);
-            array_unshift($keys, 1);
-            unset($keys[0]);
 
-            $values = array_values($mapped);
-            array_unshift($values, 1);
-            unset($values[0]);
+            // $between = ' AND year between ?0 AND ?1';
+
+            $tmpMapped = $mapped;
+
+            foreach ($tmpMapped as $key => $value) {
+                if (strpos($value, '~') !== false) {
+                    unset($tmpMapped[$key]);
+                    $betweenMap[$key] = explode('~', $value);
+                }
+            }
+
+            $keys = array_keys($tmpMapped);
+            $values = array_values($tmpMapped);
+
             foreach ($keys as $key => $field) {
                 $conditions .= " AND {$field} = ?{$key}";
+            }
+
+            if (isset($betweenMap)) {
+                foreach ($betweenMap as $key => $fields) {
+                    $binds = count($values);
+                    $conditions .= ' AND ' . $key . ' BETWEEN ?' . $binds . ' AND ?' . ($binds + 1);
+                    $values = array_merge($values, $fields);
+                }
+            }
+
+            if ($hasSubquery) {
+                $subquery = $this->parseSubquery($unparsed['subquery']);
+                $conditions .= ' AND ' . $subquery['firstField'] . ' ' . $subquery['action'] . ' (select ' . $subquery['secondField'] . ' FROM ' . $subquery['model'] . ')';
             }
 
             $statement = [
