@@ -4,6 +4,8 @@ use \Baka\Http\QueryParser;
 
 class HttpTest extends \PHPUnit_Framework_TestCase
 {
+    use \Baka\Http\Rest\SdkTrait;
+
     /**
      * Test the $_GET parser
      *
@@ -21,7 +23,19 @@ class HttpTest extends \PHPUnit_Framework_TestCase
 
         $parse = new QueryParser($params);
         print_r($parse->request());
-        die();
+        //die();
+    }
+
+    public function testSdk()
+    {
+        $userData = ['user_id' => 1, 'agency' => 2];
+        $this->setApiVersion(getenv('API_VERSION'));
+        $this->setApiPublicKey(getenv('API_PUBLIC_KEY'));
+        $this->setApiPrivateKey(getenv('API_PRIVATE_KEY'));
+        $this->setApiHeaders([
+            'users-id' => $userData['user_id'],
+            'agencies-id' => $userData['agency'],
+        ]);
     }
 
     /**

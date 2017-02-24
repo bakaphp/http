@@ -40,4 +40,14 @@ class BaseController extends Controller
 
         return $response;
     }
+
+    /**
+     * Get the unique identifier
+     *
+     * @return string IP + session_id
+     */
+    public function getIdentifier()
+    {
+        return hash_hmac('crc32', str_replace('.', '', $this->request->getClientAddress() . '-' . $this->session->getId()), 'secret');
+    }
 }
