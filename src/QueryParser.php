@@ -176,12 +176,6 @@ class QueryParser extends \Phalcon\Di\Injectable
             'model' => $model,
         ];
 
-        /*// Split the strings at their colon, set left to key, and right to value.
-        foreach ($splitFields as $field) {
-        $splitField = explode(':', $field);
-        $mapped[$splitField[0]] = $splitField[1];
-        }*/
-
         return $subquery;
     }
 
@@ -202,8 +196,6 @@ class QueryParser extends \Phalcon\Di\Injectable
             $mapped = $this->parseSearchParameters($unparsed['params']);
             $conditions = '1 = 1';
 
-            // $between = ' AND year between ?0 AND ?1';
-
             $tmpMapped = $mapped;
 
             foreach ($tmpMapped as $key => $value) {
@@ -217,7 +209,7 @@ class QueryParser extends \Phalcon\Di\Injectable
             $values = array_values($tmpMapped);
 
             foreach ($keys as $key => $field) {
-                $conditions .= " AND {$field} = ?{$key}";
+                $conditions .= " AND {$field} LIKE ?{$key}";
             }
 
             if (isset($betweenMap)) {
