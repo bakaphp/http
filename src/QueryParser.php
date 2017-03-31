@@ -21,7 +21,6 @@ class QueryParser extends \Phalcon\Di\Injectable
      * @var array
      */
     protected $request;
-    protected $symbols = ['*' => '%'];
 
     /**
      * Pass the request
@@ -109,7 +108,6 @@ class QueryParser extends \Phalcon\Di\Injectable
      */
     protected function parseSearchParameters(string $unparsed): array
     {
-        $unparsed = urldecode($unparsed);
         // Strip parens that come with the request string
         $unparsed = trim($unparsed, '()');
 
@@ -142,7 +140,6 @@ class QueryParser extends \Phalcon\Di\Injectable
      */
     protected function parseSubquery(string $unparsed): array
     {
-        $unparsed = urldecode($unparsed);
         // Strip parens that come with the request string
         $tableName = explode("(", $unparsed, 2);
         //print_r($tableName);die();
@@ -226,18 +223,9 @@ class QueryParser extends \Phalcon\Di\Injectable
                 $conditions .= ' AND ' . $subquery['firstField'] . ' ' . $subquery['action'] . ' (select ' . $subquery['secondField'] . ' FROM ' . $subquery['model'] . ')';
             }
 
-            /*in case someone want to search with <like '%sth%'>, we replace each * to % (in order to avoid an accident with urldecode like Ex: urldecode(%251FASD12%25) = \u08ASD12%.
-            We have to iterate an array with the symbols for the parser*/
-
-            foreach ($this->symbols as $symbol => $equivalent) {
-                foreach ($values as $value) {
-                    $equivalentValues[] = str_replace($symbol, $equivalent, $value);
-                }
-            }
-
             $statement = [
                 'conditions' => $conditions,
-                'bind' => $equivalentValues,
+                'bind' => $values,
             ];
         }
 
