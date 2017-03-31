@@ -108,7 +108,6 @@ class QueryParser extends \Phalcon\Di\Injectable
      */
     protected function parseSearchParameters(string $unparsed): array
     {
-        $unparsed = urldecode($unparsed);
         // Strip parens that come with the request string
         $unparsed = trim($unparsed, '()');
 
@@ -141,7 +140,6 @@ class QueryParser extends \Phalcon\Di\Injectable
      */
     protected function parseSubquery(string $unparsed): array
     {
-        $unparsed = urldecode($unparsed);
         // Strip parens that come with the request string
         $tableName = explode("(", $unparsed, 2);
         //print_r($tableName);die();
