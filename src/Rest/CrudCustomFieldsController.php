@@ -49,8 +49,10 @@ class CrudCustomFieldsController extends CrudController
      * List of business
      *
      * @method GET
-     * @url /v1/business
-     * @return response
+     * url /v1/business
+     *
+     * @param int $id
+     * @return \Phalcon\Http\Response
      */
     public function index($id = null)
     {
@@ -74,7 +76,6 @@ class CrudCustomFieldsController extends CrudController
 
             //get the custom fields for this type of record
             //$newRecordList[$key]['custom_fields'] = $record->getAllCustomFields();
-
         }
 
         return $this->response($newRecordList);
@@ -84,22 +85,21 @@ class CrudCustomFieldsController extends CrudController
      * get item
      *
      * @method GET
-     * @url /v1/business/{id}
+     * url /v1/business/{id}
      *
-     * @return Phalcon\Http\Response
+     * @param int $id
+     * @return \Phalcon\Http\Response
      */
     public function getById(int $id)
     {
+
         //find the info
         if ($objectInfo = $this->model->findFirst($id)) {
-
             $newRecordList = $objectInfo->toFullArray();
 
             return $this->response($newRecordList);
-
         } else {
             throw new Exception(_("Record not found"));
-
         }
     }
 
@@ -107,16 +107,16 @@ class CrudCustomFieldsController extends CrudController
      * Add a new item
      *
      * @method POST
-     * @url /v1/business
+     * url /v1/business
      *
-     * @return Phalcon\Http\Response
+     * @return \Phalcon\Http\Response
      */
     public function create()
     {
         $data = $this->request->getPost();
 
         //we need even if empty the custome fields
-        if (empty($this->request->getPost())) {
+        if (empty($data)) {
             throw new Exception("No valie info sent");
         }
 
@@ -125,7 +125,6 @@ class CrudCustomFieldsController extends CrudController
 
         //try to save all the fields we allow
         if ($this->model->save($data, $this->createFields)) {
-
             return $this->getById($this->model->id);
         } else {
 
@@ -138,14 +137,14 @@ class CrudCustomFieldsController extends CrudController
      * Update a new Entry
      *
      * @method PUT
-     * @url /v1/business/{id}
+     * url /v1/business/{id}
      *
-     * @return Phalcon\Http\Response
+     * @param int $id
+     * @return \Phalcon\Http\Response
      */
     public function edit(int $id)
     {
         if ($objectInfo = $this->model->findFirst($id)) {
-
             $data = $this->request->getPut();
 
             if (empty($data)) {
@@ -157,17 +156,13 @@ class CrudCustomFieldsController extends CrudController
 
             //update
             if ($objectInfo->update($data, $this->updateFields)) {
-
                 return $this->getById($id);
-
             } else {
                 //didnt work
                 throw new Exception($objectInfo->getMessages()[0]);
             }
-
         } else {
             throw new Exception(_("Record not found"));
-
         }
     }
 
@@ -175,28 +170,24 @@ class CrudCustomFieldsController extends CrudController
      * delete a new Entry
      *
      * @method DELETE
-     * @url /v1/business/{id}
+     * url /v1/business/{id}
      *
+     * @param int $id
      * @return \Phalcon\Http\Response
      * @throws \Exception
      */
     public function delete(int $id)
     {
-
         if ($objectInfo = $this->model->findFirst($id)) {
-
             if ($objectInfo->delete() === false) {
-
                 foreach ($objectInfo->getMessages() as $message) {
                     throw new Exception($message);
                 }
             }
 
             return $this->response(['Delete Successfully']);
-
         } else {
             throw new Exception(_("Record not found"));
-
         }
     }
 }
