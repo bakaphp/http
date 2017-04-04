@@ -62,9 +62,14 @@ class CrudController extends BaseController
 
         $results = $this->model->find($params);
 
+        if ($this->request->hasQuery('relationships')) {
+            $relationships = $this->request->getQuery('relationships', 'string');
+
+            $results = QueryParser::parseRelationShips($relationships, $results);
+        }
+
         //this means the want the response in a vuejs format
         if ($this->request->hasQuery('format')) {
-
             $paginator = new PaginatorModel([
                 "data" => $results,
                 "limit" => $this->request->getQuery('limit', 'int'),
@@ -154,7 +159,6 @@ class CrudController extends BaseController
     public function delete(int $id)
     {
         if ($objectInfo = $this->model->findFirst($id)) {
-
             if ($this->softDelete == 1) {
                 $objectInfo->softDelete();
             } else {

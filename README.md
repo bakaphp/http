@@ -64,14 +64,14 @@ foreach ($defaultCrudRoutes as $key => $route) {
       'Mesocom\Controllers\\' . $controllerName,
       'edit',
     ]);
-    
+
     $router->delete('/v1/' . $route . '/{id}', [
       'Mesocom\Controllers\\' . $controllerName,
       'delete',
     ]);
-    
+
     /**
-    * Mounting routes 
+    * Mounting routes
     */
     $router->mount();
 }
@@ -105,6 +105,7 @@ Parse GET request for a API , giving the user the correct phalcon model params t
 
 `GET - /v1/?q=(searchField1:value1,searchField2:value2)&fields=id_pct,alias,latitude,longitude,category,chofer,phone,coords,last_report&limit=1&page=2&sort=id_pct|desc`
 `GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value]` //filter by relationships
+`GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value]?relationships=direcciones` //add to the array a relationship of this model
 
 
 ```
