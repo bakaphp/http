@@ -187,6 +187,13 @@ trait SdkTrait
 
             case 'POST':
                 if (!$uploads) {
+                    //if we dont get post send the raw
+                    if (count($this->request->getPost()) > 0) {
+                        return ['form_params' => $this->request->getPost()];
+                    } elseif ($this->request->getJsonRawBody()) {
+                        return ['json' => json_decode($this->request->getRawBody(), true)];
+                    }
+                    //why did we get here?
                     return ['form_params' => $this->request->getPost()];
                 } else {
                     $parseUpload($this->request->getPost());
@@ -196,6 +203,13 @@ trait SdkTrait
 
             case 'PUT':
                 if (!$uploads) {
+                    //if we get put send it with the normal put, else send json
+                    if (count($this->request->getPut()) > 0) {
+                        return ['form_params' => $this->request->getPut()];
+                    } elseif ($this->request->getJsonRawBody()) {
+                        return ['json' => json_decode($this->request->getRawBody(), true)];
+                    }
+                    //why did we get here?
                     return ['form_params' => $this->request->getPut()];
                 } else {
                     $parseUpload($this->request->getPut());
