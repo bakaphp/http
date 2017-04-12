@@ -2,8 +2,9 @@
 
 namespace Baka\Http\Rest;
 
-use Baka\Http\QueryParser;
+use Baka\Http\QueryParserCustomFields;
 use Exception;
+use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
 
 /**
  * Default REST API Base Controller
@@ -61,24 +62,26 @@ class CrudCustomFieldsController extends CrudController
         }
 
         //parse the rquest
-        $parse = new QueryParser($this->request->getQuery());
+        $parse = new QueryParserCustomFields($request, $this->model);
         $params = $parse->request();
         $newRecordList = [];
 
-        // If a filter is sent we take it and built a query
-        $recordList = $this->model->find($params);
+        $recordList = (new SimpleRecords(null, $this->model, $this->model->getReadConnection()->query($params['sql'], $params['bind'])));
 
         //navigate los records
+        $newResult = [];
         foreach ($recordList as $key => $record) {
 
-            //turn record into array
-            $newRecordList[$key] = $record->toFullArray();
-
-            //get the custom fields for this type of record
-            //$newRecordList[$key]['custom_fields'] = $record->getAllCustomFields();
+            //field the object
+            foreach ($record->getAllCustomFields() as $key => $value) {
+                $record->{$key} = $value;
+            }
+            $newResult[] = $record->toFullArray();
         }
 
-        return $this->response($newRecordList);
+        unset($recordList);
+
+        return $this->response($newResult);
     }
 
     /**
