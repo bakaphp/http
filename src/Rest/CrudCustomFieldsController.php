@@ -5,6 +5,7 @@ namespace Baka\Http\Rest;
 use Baka\Http\QueryParserCustomFields;
 use Exception;
 use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
+use Phalcon\Paginator\Adapter\Model as PaginatorModel;
 
 /**
  * Default REST API Base Controller
@@ -62,9 +63,8 @@ class CrudCustomFieldsController extends CrudController
         }
 
         //parse the rquest
-        $parse = new QueryParserCustomFields($request, $this->model);
+        $parse = new QueryParserCustomFields($this->request->getQuery(), $this->model);
         $params = $parse->request();
-        $newRecordList = [];
 
         $recordList = (new SimpleRecords(null, $this->model, $this->model->getReadConnection()->query($params['sql'], $params['bind'])));
 
@@ -80,6 +80,18 @@ class CrudCustomFieldsController extends CrudController
         }
 
         unset($recordList);
+
+        //this means the want the response in a vuejs format
+        if ($this->request->hasQuery('format')) {
+            $paginator = new PaginatorModel([
+                "data" => $newResult,
+                "limit" => $this->request->getQuery('limit', 'int'),
+                "page" => $this->request->getQuery('page', 'int'),
+            ]);
+
+            // Get the paginated results
+            $newResult = (array) $paginator->getPaginate();
+        }
 
         return $this->response($newResult);
     }
