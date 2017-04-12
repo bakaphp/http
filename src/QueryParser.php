@@ -263,7 +263,7 @@ class QueryParser extends \Phalcon\Di\Injectable
      * @param  [array|object] $results     by reference to clean the object
      * @return mixed
      */
-    public static function parseRelationShips(string $relationships, &$results) : array
+    public static function parseRelationShips(string $relationships, &$results): array
     {
         $relationships = explode(',', $relationships);
 
