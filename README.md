@@ -105,7 +105,7 @@ Parse GET request for a API , giving the user the correct phalcon model params t
 
 `GET - /v1/?q=(searchField1:value1,searchField2:value2)&fields=id_pct,alias,latitude,longitude,category,chofer,phone,coords,last_report&limit=1&page=2&sort=id_pct|desc`
 `GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value]` //filter by relationships
-`GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value]?relationships=direcciones` //add to the array a relationship of this model
+`GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value]&relationships=direcciones` //add to the array a relationship of this model
 
 
 ```
@@ -137,6 +137,40 @@ $parse->request();
 [order] => id_pct desc
 [limit] => 10
 [offset] => 10
+```
+
+# QueryParser CustomFields
+
+Parse GET request for a API , given the same params as before but with cq (for custom domains) , this give out a normal SQL statement for a raw query
+
+`GET - /v1/?q=(searchField1:value1,searchField2:value2)&cq=(member_id:1)&q=(leads_status_id:1)`
+ relationship of this model
+
+
+```
+<?php
+
+$request = $this->request->getQuery();
+$parse = new QueryParserCustomFields($request, $this->model);
+$params = $parse->request();
+$newRecordList = [];
+
+$recordList = (new SimpleRecords(null, $this->model, $this->model->getReadConnection()->query($params['sql'], $params['bind'])));
+
+//navigate los records
+$newResult = [];
+foreach ($recordList as $key => $record) {
+
+    //field the object
+    foreach ($record->getAllCustomFields() as $key => $value) {
+        $record->{$key} = $value;
+    }
+
+    $newResult[] = $record->toFullArray();
+}
+
+unset($recordList);
+
 ```
 
 
