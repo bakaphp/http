@@ -108,8 +108,12 @@ trait SdkTrait
         $response = $this->makeRequest($apiUrl, $this->request->getMethod(), $this->getData(), $this->apiHeaders);
 
         // Set the response headers based on the response headers of the API.
-        $this->response->setContentType($response->getHeader('Content-Type')[0]);
-
+        if (is_array($response->getHeader('Content-Type'))) {
+            $this->response->setContentType($response->getHeader('Content-Type')[0]);
+        } else {
+            $this->response->setContentType($response->getHeader('Content-Type'));
+        }
+        
         return $this->response->setContent($response->getBody());
     }
 
