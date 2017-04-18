@@ -268,15 +268,28 @@ class QueryParser extends \Phalcon\Di\Injectable
         $relationships = explode(',', $relationships);
 
         $newResults = [];
-        foreach ($results as $key => $result) {
-            //clean records conver to array
+
+        //if its a list
+        if (count($results) > 1) {
+            foreach ($results as $key => $result) {
+                //clean records conver to array
             $newResults[$key] = $result->toArray();
+                foreach ($relationships as $relationship) {
+                    if ($results[$key]->$relationship) {
+                        $newResults[$key][$relationship] = $results[$key]->$relationship;
+                    }
+                }
+            }
+        } else {
+            //if its only 1 record
+            $newResults = $results->toArray();
             foreach ($relationships as $relationship) {
-                if ($results[$key]->$relationship) {
-                    $newResults[$key][$relationship] = $results[$key]->$relationship;
+                if ($results->$relationship) {
+                    $newResults[$relationship] = $results->$relationship;
                 }
             }
         }
+
         unset($results);
         return $newResults;
     }
