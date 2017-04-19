@@ -70,14 +70,15 @@ class CrudController extends BaseController
 
         //this means the want the response in a vuejs format
         if ($this->request->hasQuery('format')) {
-            $paginator = new PaginatorModel([
-                "data" => $results,
-                "limit" => $this->request->getQuery('limit', 'int'),
-                "page" => $this->request->getQuery('page', 'int'),
-            ]);
+            unset($params['limit']);
+            unset($params['offset']);
 
-            // Get the paginated results
-            $results = (array) $paginator->getPaginate();
+            $results =[
+              "data" => $results,
+              "limit" => $this->request->getQuery('limit', 'int'),
+              "page" => $this->request->getQuery('page', 'int'),
+              'total_pages' => ceil($this->model->count($params)/$this->request->getQuery('limit', 'int')),
+          ];
         }
 
         return $this->response($results);
