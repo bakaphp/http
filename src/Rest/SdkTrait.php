@@ -107,13 +107,18 @@ trait SdkTrait
         // Execute the request, providing the URL, the request method and the data.
         $response = $this->makeRequest($apiUrl, $this->request->getMethod(), $this->getData(), $this->apiHeaders);
 
+        //set status code so we can get 404
+        if ($response->getStatusCode()) {
+            $this->response->setStatusCode($response->getStatusCode());
+        }
+        
         // Set the response headers based on the response headers of the API.
         if (is_array($response->getHeader('Content-Type'))) {
             $this->response->setContentType($response->getHeader('Content-Type')[0]);
         } else {
             $this->response->setContentType($response->getHeader('Content-Type'));
         }
-        
+
         return $this->response->setContent($response->getBody());
     }
 
