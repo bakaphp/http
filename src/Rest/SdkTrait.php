@@ -111,7 +111,7 @@ trait SdkTrait
         if ($response->getStatusCode()) {
             $this->response->setStatusCode($response->getStatusCode());
         }
-        
+
         // Set the response headers based on the response headers of the API.
         if (is_array($response->getHeader('Content-Type'))) {
             $this->response->setContentType($response->getHeader('Content-Type')[0]);
@@ -133,7 +133,12 @@ trait SdkTrait
      */
     public function makeRequest($url, $method = 'GET', $data = [], $headers = [])
     {
-        $client = (new ClientSecurity($this->apiPublicKey, $this->apiPrivateKey, $data, $headers))->getGuzzle();
+        //we cant send to the API the array with get GET, JSON, form_params parameters
+        //the API doesnt get it taht way, guzzle sends it directly
+        //so we extract it
+        $rawData = $data[array_keys($data)[0]];
+
+        $client = (new ClientSecurity($this->apiPublicKey, $this->apiPrivateKey, $rawData, $headers))->getGuzzle();
 
         $parse = function ($error) {
             if ($error->hasResponse()) {
