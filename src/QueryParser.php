@@ -282,10 +282,12 @@ class QueryParser extends \Phalcon\Di\Injectable
             }
         } else {
             //if its only 1 record
-            $newResults = $results->toArray();
-            foreach ($relationships as $relationship) {
-                if ($results->$relationship) {
-                    $newResults[$relationship] = $results->$relationship;
+            if ($results->count()) {
+                $newResults = $results->toArray();
+                foreach ($relationships as $relationship) {
+                    if ($results->$relationship) {
+                        $newResults[$relationship] = $results->$relationship;
+                    }
                 }
             }
         }
