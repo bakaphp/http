@@ -119,6 +119,13 @@ class CrudController extends BaseController
             'bind' => [$id],
         ]);
 
+        //get relationship
+        if ($this->request->hasQuery('relationships')) {
+            $relationships = $this->request->getQuery('relationships', 'string');
+
+            $objectInfo = QueryParser::parseRelationShips($relationships, $objectInfo);
+        }
+
         if ($objectInfo) {
             return $this->response($objectInfo);
         } else {
