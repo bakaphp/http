@@ -136,7 +136,9 @@ trait SdkTrait
         //we cant send to the API the array with get GET, JSON, form_params parameters
         //the API doesnt get it taht way, guzzle sends it directly
         //so we extract it
-        $rawData = $data[array_keys($data)[0]];
+
+        $rawData = count(array_keys($data)) > 0 ?  $data[array_keys($data)[0]] : [];
+
 
         $client = (new ClientSecurity($this->apiPublicKey, $this->apiPrivateKey, $rawData, $headers))->getGuzzle();
 
