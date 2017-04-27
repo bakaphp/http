@@ -2,7 +2,8 @@
 
 namespace Baka\Http;
 
-use Phalcon\Mvc\Model\Resultset;
+use Phalcon\Mvc\Model\ResultsetInterface;
+use Phalcon\Mvc\Model;
 
 /**
  * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret
@@ -270,7 +271,7 @@ class QueryParser extends \Phalcon\Di\Injectable
         $newResults = [];
 
         //if its a list
-        if (count($results) > 1) {
+        if ($results instanceof ResultsetInterface && count($results) >= 1) {
             foreach ($results as $key => $result) {
                 //clean records conver to array
             $newResults[$key] = $result->toArray();
@@ -282,7 +283,7 @@ class QueryParser extends \Phalcon\Di\Injectable
             }
         } else {
             //if its only 1 record
-            if ($results->count()) {
+            if ($results instanceof Model) {
                 $newResults = $results->toArray();
                 foreach ($relationships as $relationship) {
                     if ($results->$relationship) {
