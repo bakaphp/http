@@ -15,13 +15,13 @@
         "ext-phalcon": ">=3.0.0",
         "vlucas/phpdotenv": "^2.0",
         "phalcon/incubator": "~3.0",
-        "baka/phalconphp-hmac": "dev-auth-phalcon-3"
+        "baka/phalconphp-hmac": "auth-phalcon-3"
     },
     "require-dev": {
         "codeception/verify": "*",
         "vlucas/phpdotenv": "^2.0",
         "phalcon/incubator": "dev-master",
-        "baka/phalconphp-hmac": "dev-auth-phalcon-3"
+        "baka/phalconphp-hmac": "auth-phalcon-3"
     },
     "autoload": {
         "psr-4": {
