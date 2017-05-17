@@ -4,49 +4,13 @@ namespace Baka\Http\Rest;
 
 use Baka\Http\QueryParserCustomFields;
 use Baka\Http\QueryParser;
-use Exception;
 use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
-use Phalcon\Paginator\Adapter\NativeArray as PaginatorModel;
 
 /**
  * Default REST API Base Controller
  */
 class CrudExtendedController extends CrudController
 {
-    /**
-     * Soft delete option, default 1
-     *
-     * @var int
-     */
-    public $softDelete = 0;
-
-    /**
-     * fields we accept to create
-     *
-     * @var array
-     */
-    protected $createFields = [];
-
-    /**
-     * fields we accept to update
-     *
-     * @var array
-     */
-    protected $updateFields = [];
-
-    /**
-     * the model that interacts witht his controler
-     *
-     * @var string
-     */
-    public $model;
-
-    /**
-     * the custom model where the info of the custom fields is saved
-     *
-     * @var string
-     */
-    public $customModel;
 
     /**
      * List of business
