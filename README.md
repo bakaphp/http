@@ -7,6 +7,7 @@ Baka Http
 2. [REST CRUD](#markdown-header-routes)
     1. [Controller Configuration](#markdown-header-controllers)
 3. [QueryParser](#markdown-header-QueryParser)
+4. [QueryParser Extended](#markdown-header-QueryParser-Extended)
 
 ## Testing
 ```
@@ -139,7 +140,7 @@ $parse->request();
 [offset] => 10
 ```
 
-# QueryParser CustomFields
+# ~~QueryParser CustomFields~~ (DEPRECATED)
 
 Parse GET request for a API , given the same params as before but with cq (for custom domains) , this give out a normal SQL statement for a raw query
 
@@ -170,20 +171,103 @@ foreach ($recordList as $key => $record) {
 }
 
 unset($recordList);
-
 ```
 
+# QueryParser Extended
+
+The extended query parser allows you to append search parameters directly via the controller without having to rewrite the function code.
+
+Features include the ability to search within a model, within a model's custom fields and within a model's descendant relationships.
+
+Parameters are passed in the format `field` `operator` `value`. Valid operators are `:`, `>`, `<`.
+
+Multiple fields can be search by separating them with a `,`. You can search a field by several values by separating said values with `|` (equivalent to SQL's `OR`).
+
+### Query the Model
+`GET - /v1/model?q=(field1:value1,field2:value2|value3)`
+
+### Query the Custom Fields
+`GET - /v1/model?cq=(field1>value1)`
+
+### Query related Models
+Querying related models demands a slightly different structure. Each related model that we want queried must be passed as they are named in the system, `_` is used to separate camel cases.
+
+`GET - /v1/model?rq[model_name]=(field1<value1|value2)`
+
+### `Between`
+While between is strictly not supported at this time, you can produce the same result following this procedure:
+
+`GET - /v1/model?q=(field1>value1,field1<value2)`
+
+### Like, Empty or Not
+There is another nice feature that you can use to query the model.
+
+#### Like
+* `GET - /v1/model?q=(field1:%value)`
+* `GET - /v1/model?q=(field1:value%)`
+* `GET - /v1/model?q=(field1:%value%)`
+
+#### Empty
+You can tell the query parser to make sure a field is empty. In the case of integer properties, the query parser will ask the model if the default value for a property is `0`. If it is, it will include `0` as an empty value.
+
+`GET - /v1/model?q=(field1:%%)`
+
+#### Not
+This is the opposite of the above Empty.
+
+`GET - /v1/model?q=(field1:$$)`
+
+### One for all, and all for One
+You can use all the above described feature together in one query.
+
+`GET - /v1/model?q=(field1:value1|value2,field2>value3,field2<value4,field3:$$)&cq=(field4:value5)&rq[model_name]=(field5>value6)`
+
+_Just remember to escape any special character you want to send through a query string to avoid unwanted results._
+
+## Usage
+In order to access the extended query parser features your controller has to extend from `CrudExtendedController`.
+
+```
+<?php
+
+class ExampleController extends \Baka\Http\Rest\CrudExtendedController
+```
+
+To append additional search parameters you simply do this:
+```
+<?php
+
+public function index($id = null): Response
+{
+    $this->additionalSearchFields = [
+        ['field', ':', 'value'],
+    ];
+
+    return parent::index();
+}
+```
+
+This method uses the operators that are passed to the query parser via the URL query. Valid operators are (with their SQL equivalents):
+```
+<?php
+
+$operators = [
+    ':' => '=',
+    '>' => '>=',
+    '<' => '<=',
+];
+```
 
 # API Custom Fields CRUD
 
-The CRUD handles the default behaviero:
+The CRUD handles the default behavior:
 - GET /v1/leads -> get all
 - GET /v1/leads/1 -> get one
 - POST /v1/leads -> create
 - PUT /v1/leads/1 -> update
 - DELETE /v1/leads/1 -> delete
 
-In other to use the custom fields you need to extend you controller from CrudCustomFieldsController and define the method onConstruct on this method you define the model of the custom field and the model of the value of this custom fields
+In other to use the custom fields you need to extend you controller from CrudCustomFieldsController and define the method `onConstruct()` on this method you define the model of the custom field and the model of the value of this custom fields
 
 ```
 public function onConstruct()
