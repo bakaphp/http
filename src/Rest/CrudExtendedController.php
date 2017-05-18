@@ -33,13 +33,11 @@ class CrudExtendedController extends CrudController
 
         $results = (new SimpleRecords(null, $this->model, $this->model->getReadConnection()->query($params['sql'], $params['bind'])));
 
-        //navigate los records
-        $newResult = [];
-
+        //relationships , but we have to change it to sparo full implementation
         if ($this->request->hasQuery('relationships')) {
             $relationships = $this->request->getQuery('relationships', 'string');
 
-            $newResult = QueryParser::parseRelationShips($relationships, $newResult);
+            $results = QueryParser::parseRelationShips($relationships, $results);
         }
 
         //this means the want the response in a vuejs format
@@ -48,7 +46,7 @@ class CrudExtendedController extends CrudController
             unset($params['offset']);
 
             $newResult =[
-              "data" => $newResult,
+              "data" => $results,
               "limit" => $this->request->getQuery('limit', 'int'),
               "page" => $this->request->getQuery('page', 'int'),
               'total_pages' => 100,
