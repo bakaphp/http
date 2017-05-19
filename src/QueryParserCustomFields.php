@@ -243,6 +243,11 @@ class QueryParserCustomFields extends QueryParser
                         'bind' => [$modules->id, $searchField],
                     ]);
 
+                    $customFieldValue = $customClassname . '.value';
+                    if ($customFields->type->name == 'number') {
+                        $customFieldValue = 'CAST(' . $customFieldValue . ' AS BIGINT)';
+                    }
+
                     $sql .= ' AND ' . $customClassname . '.custom_fields_id = :cfi' . $searchField;
 
                     $bindParamsKeys[] = 'cfi' . $searchField;
@@ -265,9 +270,9 @@ class QueryParserCustomFields extends QueryParser
                             }
 
                             if (!$vKey) {
-                                $sql .= ' AND (' . $customClassname . '.value ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
+                                $sql .= ' AND (' . $customFieldValue . ' ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
                             } else {
-                                $sql .= ' OR ' . $customClassname . '.value ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
+                                $sql .= ' OR ' . $customFieldValue . ' ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
                             }
 
                             $bindParamsKeys[] = 'cfv' . $searchField . $fKey . $vKey;
