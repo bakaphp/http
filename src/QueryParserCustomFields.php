@@ -245,7 +245,7 @@ class QueryParserCustomFields extends QueryParser
 
                     $customFieldValue = $customClassname . '.value';
                     if ($customFields->type->name == 'number') {
-                        $customFieldValue = 'CAST(' . $customFieldValue . ' AS BIGINT)';
+                        $customFieldValue = 'CAST(' . $customFieldValue . ' AS INT)';
                     }
 
                     $sql .= ' AND ' . $customClassname . '.custom_fields_id = :cfi' . $searchField;
