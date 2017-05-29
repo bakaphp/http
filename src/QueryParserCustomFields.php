@@ -27,31 +27,45 @@ class QueryParserCustomFields extends QueryParser
     protected $request;
 
     /**
-     * @param Baka\Database\Model
+     * @var Baka\Database\Model
      */
     protected $model;
 
     /**
-     * @param array $relationSearchFields
+     * @var string
+     */
+    protected $columns;
+
+    /**
+     * @var int
+     */
+    protected $page = 1;
+
+    /**
+     * @var int
+     */
+    protected $limit = 25;
+
+    /**
+     * @var array $relationSearchFields
      */
     protected $relationSearchFields = [];
     protected $additionalRelationSearchFields = [];
 
     /**
-     * @param array $customSearchFields
+     * @var array $customSearchFields
      */
     protected $customSearchFields = [];
     protected $additionalCustomSearchFields = [];
 
     /**
-     * @param array $normalSearchFields
+     * @var array $normalSearchFields
      */
     protected $normalSearchFields = [];
     protected $additionalSearchFields = [];
 
     /**
      * Pass the request
-     * @param array $request [description]
      */
     public function __construct(array $request, Model $model)
     {
@@ -91,44 +105,92 @@ class QueryParserCustomFields extends QueryParser
             $params['params'] = $this->request['q'];
         }
 
+        // Check to see if the user wants certain columns returned
+        if (array_key_exists('columns', $this->request)) {
+            $this->parseColumns($this->request['columns']);
+        } else {
+            $this->columns = "{$this->model->getSource()}.*";
+        }
+
+        // Check the limit the user is asking for.
+        if (array_key_exists('limit', $this->request)) {
+            $limit = (int) $this->request['limit'];
+            // Prevent ridiculous limits. Nothing above 200 and nothing below 1.
+            if ($limit >= 1 && $limit <= 200) {
+                $this->limit = $limit;
+            }
+        }
+
+        // Check the page the user is asking for.
+        if (array_key_exists('page', $this->request)) {
+            $page = (int) $this->request['page'];
+            // Prevent ridiculous pagination requests
+            if ($page >= 1) {
+                $this->page = $page;
+            }
+        }
+
         // Prepare the search parameters.
         $this->prepareParams($params);
+
+        // Sorting logic for related searches.
+        // @TODO Explore this in the future. There might be better ways to carry it out.
+        $sort = '';
+        if (array_key_exists('sort', $this->request)) {
+            $sort = $this->request['sort'];
+
+            if (!empty($sort)) {
+                // Get the model, column and sort order from the sent parameter.
+                list($modelColumn, $order) = explode('|', $sort);
+                // Check to see whether this is a related sorting by looking for a .
+                if (strpos($modelColumn, '.') !== false) {
+                    // We are using a related sort.
+                    // Get the namespace for the models from the configuration.
+                    $modelNamespace = \Phalcon\Di::getDefault()->getConfig()->namespace->models;
+                    // Get the model name and the sort column from the sent parameter
+                    list($model, $column) = explode('.', $modelColumn);
+                    // Convert the model name into camel case.
+                    $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
+                    // Create the model name with the appended namespace.
+                    $modelName = $modelNamespace . '\\' . $modelName;
+
+                    // Make sure the model exists.
+                    if (!class_exists($modelName)) {
+                        throw new \Exception('Related model does not exist.');
+                    }
+
+                    // Instance the model so we have access to the getSource() function.
+                    $modelObject = new $modelName();
+                    // Instance meta data memory to access the primary keys for the table.
+                    $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
+                    // Get the first matching primary key.
+                    // @TODO This will hurt on compound primary keys.
+                    $primaryKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
+                    // We need the table to exist in the query in order for the related sort to work.
+                    // Therefore we add it to comply with this by comparing the primary key to not being NULL.
+                    $this->relationSearchFields[$modelName][] = [
+                        $primaryKey, ':', '$$'
+                    ];
+                }
+
+                $sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
+                unset($modelObject);
+            }
+        }
+
         // Append any additional user parameters
         $this->appendAdditionalParams();
         //base on th eesarch params get the raw query
         $rawSql = $this->prepareCustomSearch();
 
-        //now lets update the querys
-
-        //filter the field
-        if (array_key_exists('fields', $this->request)) {
-            $fields = $this->request['fields'];
-
-            $modelSearchParams['columns'] = $this->parsePartialFields($fields);
-        }
-
-        // Set limits and offset, elsewise allow them to have defaults set in the Controller
-        $page = array_key_exists('page', $this->request) ? $this->request['page'] : 1;
-        if (array_key_exists('limit', $this->request)) {
-            $limit = $this->request['limit'];
-        }
-
         //sort
-        if (array_key_exists('sort', $this->request) && !empty($this->request['sort'])) {
-            $sort = $this->request['sort'];
-            $sort = str_replace('|', ' ', $sort);
-
-            $rawSql['sql'] .= ' ORDER BY ' . $sort;
+        if (!empty($sort)) {
+            $rawSql['sql'] .= $sort;
         }
 
-        //limit
-        if (isset($limit)) {
-            $offset = ($page - 1) * $limit;
-
-            $limit = $limit;
-            $offset = $offset;
-            $rawSql['sql'] .= ' LIMIT ' . $limit . ' OFFSET ' . $offset;
-        }
+        // Calculate the corresponding offset
+        $offset = ($this->page - 1) * $this->limit;
+        $rawSql['sql'] .= " LIMIT {$this->limit} OFFSET {$offset}";
 
         return $rawSql;
     }
@@ -348,7 +410,7 @@ class QueryParserCustomFields extends QueryParser
 
         //sql string
         $countSql = 'SELECT COUNT(*) total FROM ' . $classname . $sql;
-        $resultsSql = 'SELECT ' . $classname . '.*' . ' FROM ' . $classname . $sql;
+        $resultsSql = "SELECT {$this->columns} FROM {$classname}{$sql}";
         //bind params
         $bindParams = array_combine($bindParamsKeys, $bindParamsValues);
 
@@ -515,5 +577,31 @@ class QueryParserCustomFields extends QueryParser
     public function appendRelationParams(array $params): void
     {
         $this->additionalRelationSearchFields = $params;
+    }
+
+    /**
+     * Parse the requested columns to be returned.
+     *
+     * @param string $columns
+     *
+     * @return void
+     */
+    protected function parseColumns(string $columns): void
+    {
+        // Split the columns string into individual columns
+        $columns = explode(',', $columns);
+        // Get the model meta data to make sure the column exists.
+        $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
+        $modelAttributes = $metaData->getAttributes($this->model);
+
+        if (!empty(array_diff($columns, $modelAttributes))) {
+            throw new \Exception('Algunas de las columnas específicadas no forman parte de la tabla.');
+        }
+
+        foreach($columns as &$column) {
+            $column = "{$this->model->getSource()}.{$column}";
+        }
+
+        $this->columns = implode(', ', $columns);
     }
 }

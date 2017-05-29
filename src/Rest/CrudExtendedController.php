@@ -80,7 +80,7 @@ class CrudExtendedController extends BaseController
         $results = (new SimpleRecords(null, $this->model, $this->model->getReadConnection()->query($params['sql'], $params['bind'])));
         $count = $this->model->getReadConnection()->query($params['countSql'], $params['bind'])->fetch(\PDO::FETCH_OBJ)->total;
 
-        //relationships , but we have to change it to sparo full implementation
+        // Relationships, but we have to change it to sparo full implementation
         if ($this->request->hasQuery('relationships')) {
             $relationships = $this->request->getQuery('relationships', 'string');
 
