@@ -2,6 +2,7 @@
 
 namespace Baka\Http;
 
+use Exception;
 use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\Model;
 
@@ -258,11 +259,11 @@ class QueryParser extends \Phalcon\Di\Injectable
     }
 
     /**
-     * Based on the given relaitonship , add the relation array to the Resultset
+     * Based on the given relaitonship, add the relation array to the Resultset
      *
      * @param  string $relationships
-     * @param  [array|object] $results     by reference to clean the object
-     * @return mixed
+     * @param  [array|object] $results
+     * @return array
      */
     public static function parseRelationShips(string $relationships, &$results): array
     {
@@ -270,11 +271,11 @@ class QueryParser extends \Phalcon\Di\Injectable
 
         $newResults = [];
 
-        //if its a list
+        // if its a list
         if ($results instanceof ResultsetInterface && count($results) >= 1) {
             foreach ($results as $key => $result) {
                 //clean records conver to array
-            $newResults[$key] = $result->toArray();
+                $newResults[$key] = $result->toFullArray();
                 foreach ($relationships as $relationship) {
                     if ($results[$key]->$relationship) {
                         $newResults[$key][$relationship] = $results[$key]->$relationship;
@@ -282,9 +283,9 @@ class QueryParser extends \Phalcon\Di\Injectable
                 }
             }
         } else {
-            //if its only 1 record
+            // if its only 1 record
             if ($results instanceof Model) {
-                $newResults = $results->toArray();
+                $newResults = $results->toFullArray();
                 foreach ($relationships as $relationship) {
                     if ($results->$relationship) {
                         $newResults[$relationship] = $results->$relationship;

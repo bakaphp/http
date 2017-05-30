@@ -171,10 +171,12 @@ class QueryParserCustomFields extends QueryParser
                     $this->relationSearchFields[$modelName][] = [
                         $primaryKey, ':', '$$'
                     ];
-                }
 
-                $sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
-                unset($modelObject);
+                    $sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
+                    unset($modelObject);
+                } else {
+                    $sort = " ORDER BY {$modelColumn} {$order}";
+                }
             }
         }
 
@@ -590,16 +592,14 @@ class QueryParserCustomFields extends QueryParser
     {
         // Split the columns string into individual columns
         $columns = explode(',', $columns);
-        // Get the model meta data to make sure the column exists.
-        $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
-        $modelAttributes = $metaData->getAttributes($this->model);
-
-        if (!empty(array_diff($columns, $modelAttributes))) {
-            throw new \Exception('Algunas de las columnas específicadas no forman parte de la tabla.');
-        }
 
         foreach($columns as &$column) {
-            $column = "{$this->model->getSource()}.{$column}";
+            if (strpos($column, '.') === false) {
+                $column = "{$this->model->getSource()}.{$column}";
+            } else {
+                $as = str_replace('.', '_', $column);
+                $column = "{$column} {$as}";
+            }
         }
 
         $this->columns = implode(', ', $columns);
