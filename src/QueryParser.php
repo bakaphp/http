@@ -275,7 +275,7 @@ class QueryParser extends \Phalcon\Di\Injectable
         if ($results instanceof ResultsetInterface && count($results) >= 1) {
             foreach ($results as $key => $result) {
                 //clean records conver to array
-                $newResults[$key] = $result->toFullArray();
+                $newResults[$key] = $result->toArray();
                 foreach ($relationships as $relationship) {
                     if ($results[$key]->$relationship) {
                         $newResults[$key][$relationship] = $results[$key]->$relationship;
@@ -285,7 +285,7 @@ class QueryParser extends \Phalcon\Di\Injectable
         } else {
             // if its only 1 record
             if ($results instanceof Model) {
-                $newResults = $results->toFullArray();
+                $newResults = $results->toArray();
                 foreach ($relationships as $relationship) {
                     if ($results->$relationship) {
                         $newResults[$relationship] = $results->$relationship;
