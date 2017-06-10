@@ -47,22 +47,41 @@ class QueryParserCustomFields extends QueryParser
     protected $limit = 25;
 
     /**
-     * @var array $relationSearchFields
+     * @var array
      */
     protected $relationSearchFields = [];
     protected $additionalRelationSearchFields = [];
 
     /**
-     * @var array $customSearchFields
+     * @var array
      */
     protected $customSearchFields = [];
     protected $additionalCustomSearchFields = [];
 
     /**
-     * @var array $normalSearchFields
+     * @var array
      */
     protected $normalSearchFields = [];
     protected $additionalSearchFields = [];
+
+    /**
+     * @var array
+     */
+    private $operators = [
+        ':' => '=',
+        '>' => '>=',
+        '<' => '<='
+    ];
+
+    /**
+     * @var array
+     */
+    private $bindParamsKeys = [];
+
+    /**
+     * @var array
+     */
+    private $bindParamsValues = [];
 
     /**
      * Pass the request
@@ -215,72 +234,23 @@ class QueryParserCustomFields extends QueryParser
 
         $sql = '';
 
-        $operators = [
-            ':' => '=',
-            '>' => '>=',
-            '<' => '<=',
-        ];
-
         if (!empty($this->relationSearchFields)) {
             foreach ($this->relationSearchFields as $model => $searchFields) {
                 $modelObject = new $model();
                 $model = $modelObject->getSource();
 
-                $textFields = $this->getTextFields($model);
                 $relatedKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
 
                 $sql .= " INNER JOIN {$model} ON {$model}.{$relatedKey} = (";
                 $sql .= "SELECT {$model}.{$relatedKey} FROM {$model} WHERE {$model}.{$primaryKey} = {$classname}.{$primaryKey}";
 
                 foreach ($searchFields as $fKey => $searchFieldValues) {
-                    list($searchField, $operator, $searchValues) = $searchFieldValues;
-                    $operator = $operators[$operator];
-
-                    if (trim($searchValues) !== '') {
-                        if ($searchValues == '%%') {
-                            $sql .= ' AND (' . $model . '.' . $searchField . ' IS NULL';
-                            $sql .= ' OR ' . $model . '.' . $searchField . ' = ""';
-
-                            if ($this->model->$searchField === 0) {
-                                $sql .= ' OR ' . $model . '.' . $searchField . ' = 0';
-                            }
-
-                            $sql .= ')';
-                        } elseif ($searchValues == '$$') {
-                            $sql .= ' AND (' . $model . '.' . $searchField . ' IS NOT NULL';
-                            $sql .= ' OR ' . $model . '.' . $searchField . ' != ""';
-
-                            if ($this->model->$searchField === 0) {
-                                $sql .= ' OR ' . $model . '.' . $searchField . ' != 0';
-                            }
-
-                            $sql .= ')';
-                        } else {
-                            if (strpos($searchValues, '|')) {
-                                $searchValues = explode('|', $searchValues);
-                            } else {
-                                $searchValues = [$searchValues];
-                            }
-
-                            foreach ($searchValues as $vKey => $value) {
-                                if (in_array($searchField, $textFields)
-                                    && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value)
-                                ) {
-                                    $operator = 'LIKE';
-                                }
-
-                                if (!$vKey) {
-                                    $sql .= ' AND (' . $model . '.' . $searchField . ' ' . $operator . ' :rf' . $searchField . $fKey . $vKey;
-                                } else {
-                                    $sql .= ' OR ' . $model . '.' . $searchField . ' ' . $operator . ' :rf' . $searchField . $fKey . $vKey;
-                                }
-
-                                $bindParamsKeys[] = 'rf' . $searchField . $fKey . $vKey;
-                                $bindParamsValues[] = $value;
-                            }
-
-                            $sql .= ')';
+                    if (is_array(current($searchFieldValues))) {
+                        foreach($searchFieldValues as $chainSearch) {
+                            $sql .= $this->prepareRelatedSql($chainSearch, $model, 'OR', $fKey);
                         }
+                    } else {
+                        $sql .= $this->prepareRelatedSql($searchFieldValues, $model, 'AND', $fKey);
                     }
                 }
 
@@ -298,129 +268,254 @@ class QueryParserCustomFields extends QueryParser
             $sql .= 'SELECT ' . $customClassname . '.id FROM ' . $customClassname . ' WHERE ' . $customClassname . '.' . $classname . '_id = ' . $classname . '.id';
 
             foreach ($this->customSearchFields as $fKey => $searchFieldValues) {
-                list($searchField, $operator, $searchValue) = $searchFieldValues;
-                $operator = $operators[$operator];
-
-                if (trim($searchValue) !== '') {
-                    $customFields = CustomFields::findFirst([
-                        'modules_id = ?0 AND name = ?1',
-                        'bind' => [$modules->id, $searchField],
-                    ]);
-
-                    $customFieldValue = $customClassname . '.value';
-                    if ($customFields->type->name == 'number') {
-                        $customFieldValue = 'CAST(' . $customFieldValue . ' AS INT)';
+                if (is_array(current($searchFieldValues))) {
+                    foreach($searchFieldValues as $chainSearch) {
+                        $sql .= $this->prepareCustomSql($chainSearch, $modules, $customClassname, 'OR', $fKey);
                     }
-
-                    $sql .= ' AND ' . $customClassname . '.custom_fields_id = :cfi' . $searchField;
-
-                    $bindParamsKeys[] = 'cfi' . $searchField;
-                    $bindParamsValues[] = $customFields->id;
-
-                    if ($searchValue == '%%') {
-                        $sql .= ' AND (' . $customClassname . '.value IS NULL OR ' . $customClassname . '.value = "")';
-                    } elseif ($searchValue == '$$') {
-                        $sql .= ' AND (' . $customClassname . '.value IS NOT NULL OR ' . $customClassname . '.value != "")';
-                    } else {
-                        if (strpos($searchValue, '|')) {
-                            $searchValue = explode('|', $searchValue);
-                        } else {
-                            $searchValue = [$searchValue];
-                        }
-
-                        foreach ($searchValue as $vKey => $value) {
-                            if (preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value)) {
-                                $operator = 'LIKE';
-                            }
-
-                            if (!$vKey) {
-                                $sql .= ' AND (' . $customFieldValue . ' ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
-                            } else {
-                                $sql .= ' OR ' . $customFieldValue . ' ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
-                            }
-
-                            $bindParamsKeys[] = 'cfv' . $searchField . $fKey . $vKey;
-                            $bindParamsValues[] = $value;
-                        }
-
-                        $sql .= ')';
-                    }
+                } else {
+                    $sql .= $this->prepareCustomSql($searchFieldValues, $modules, $customClassname, 'AND', $fKey);
                 }
             }
 
             $sql .= ' LIMIT 1)';
         }
 
-        $sql .= ' WHERE 1 = 1';
+        $sql .= ' WHERE';
 
         // create normal sql search
         if (!empty($this->normalSearchFields)) {
-            $textFields = $this->getTextFields($classname);
-
             foreach ($this->normalSearchFields as $fKey => $searchFieldValues) {
-                list($searchField, $operator, $searchValues) = $searchFieldValues;
-                $operator = $operators[$operator];
-
-                if (trim($searchValues) !== '') {
-                    if ($searchValues == '%%') {
-                        $sql .= ' AND (' . $classname . '.' . $searchField . ' IS NULL';
-                        $sql .= ' OR ' . $classname . '.' . $searchField . ' = ""';
-
-                        if ($this->model->$searchField === 0) {
-                            $sql .= ' OR ' . $classname . '.' . $searchField . ' = 0';
-                        }
-
-                        $sql .= ')';
-                    } elseif ($searchValues == '$$') {
-                        $sql .= ' AND (' . $classname . '.' . $searchField . ' IS NOT NULL';
-                        $sql .= ' OR ' . $classname . '.' . $searchField . ' != ""';
-
-                        if ($this->model->$searchField === 0) {
-                            $sql .= ' OR ' . $classname . '.' . $searchField . ' != 0';
-                        }
-
-                        $sql .= ')';
-                    } else {
-                        if (strpos($searchValues, '|')) {
-                            $searchValues = explode('|', $searchValues);
-                        } else {
-                            $searchValues = [$searchValues];
-                        }
-
-                        foreach ($searchValues as $vKey => $value) {
-                            if (in_array($searchField, $textFields)
-                                && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value)
-                            ) {
-                                $operator = 'LIKE';
-                            }
-
-                            if (!$vKey) {
-                                $sql .= ' AND (' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
-                            } else {
-                                $sql .= ' OR ' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
-                            }
-
-                            $bindParamsKeys[] = 'f' . $searchField . $fKey . $vKey;
-                            $bindParamsValues[] = $value;
-                        }
-
-                        $sql .= ')';
+                if (is_array(current($searchFieldValues))) {
+                    foreach($searchFieldValues as $chainSearch) {
+                        $sql .= $this->prepareNormalSql($chainSearch, $classname, 'OR', $fKey);
                     }
+                } else {
+                    $sql .= $this->prepareNormalSql($searchFieldValues, $classname, 'AND', $fKey);
                 }
             }
         }
+
+        // Replace initial `AND ` or `OR ` to avoid SQL errors.
+        $sql = str_replace(
+            ['WHERE AND', 'WHERE OR'],
+            ['WHERE', 'WHERE'],
+            $sql
+        );
+
+        // Remove empty where from the end of the string.
+        $sql = preg_replace('# WHERE$#', '', $sql);
 
         //sql string
         $countSql = 'SELECT COUNT(*) total FROM ' . $classname . $sql;
         $resultsSql = "SELECT {$this->columns} FROM {$classname}{$sql}";
         //bind params
-        $bindParams = array_combine($bindParamsKeys, $bindParamsValues);
+        $bindParams = array_combine($this->bindParamsKeys, $this->bindParamsValues);
 
         return [
             'sql' => $resultsSql,
             'countSql' => $countSql,
             'bind' => $bindParams,
         ];
+    }
+
+    /**
+     * Prepare the SQL for a normal search.
+     *
+     * @param array $searchCriteria
+     * @param string $classname
+     * @param string $andOr
+     * @param int $fKey
+     *
+     * @return string
+     */
+    private function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    {
+        $sql = '';
+        $textFields = $this->getTextFields($classname);
+        list($searchField, $operator, $searchValues) = $searchCriteria;
+        $operator = $this->operators[$operator];
+
+        if (trim($searchValues) !== '') {
+            if ($searchValues == '%%') {
+                $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' IS NULL';
+                $sql .= ' OR ' . $classname . '.' . $searchField . ' = ""';
+
+                if ($this->model->$searchField === 0) {
+                    $sql .= ' OR ' . $classname . '.' . $searchField . ' = 0';
+                }
+
+                $sql .= ')';
+            } elseif ($searchValues == '$$') {
+                $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' IS NOT NULL';
+                $sql .= ' OR ' . $classname . '.' . $searchField . ' != ""';
+
+                if ($this->model->$searchField === 0) {
+                    $sql .= ' OR ' . $classname . '.' . $searchField . ' != 0';
+                }
+
+                $sql .= ')';
+            } else {
+                if (strpos($searchValues, '|')) {
+                    $searchValues = explode('|', $searchValues);
+                } else {
+                    $searchValues = [$searchValues];
+                }
+
+                foreach ($searchValues as $vKey => $value) {
+                    if (in_array($searchField, $textFields)
+                        && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value)
+                    ) {
+                        $operator = 'LIKE';
+                    }
+
+                    if (!$vKey) {
+                        $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                    } else {
+                        $sql .= ' OR ' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                    }
+
+                    $this->bindParamsKeys[] = 'f' . $searchField . $fKey . $vKey;
+                    $this->bindParamsValues[] = $value;
+                }
+
+                $sql .= ')';
+            }
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Prepare the SQL for a related search.
+     *
+     * @param array $searchCriteria
+     * @param string $classname
+     * @param string $andOr
+     * @param int $fKey
+     *
+     * @return string
+     */
+    private function prepareRelatedSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    {
+        $sql = '';
+        $textFields = $this->getTextFields($classname);
+        list($searchField, $operator, $searchValues) = $searchCriteria;
+        $operator = $this->operators[$operator];
+
+        if (trim($searchValues) !== '') {
+            if ($searchValues == '%%') {
+                $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' IS NULL';
+                $sql .= ' OR ' . $classname . '.' . $searchField . ' = ""';
+
+                if ($this->model->$searchField === 0) {
+                    $sql .= ' OR ' . $classname . '.' . $searchField . ' = 0';
+                }
+
+                $sql .= ')';
+            } elseif ($searchValues == '$$') {
+                $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' IS NOT NULL';
+                $sql .= ' OR ' . $classname . '.' . $searchField . ' != ""';
+
+                if ($this->model->$searchField === 0) {
+                    $sql .= ' OR ' . $classname . '.' . $searchField . ' != 0';
+                }
+
+                $sql .= ')';
+            } else {
+                if (strpos($searchValues, '|')) {
+                    $searchValues = explode('|', $searchValues);
+                } else {
+                    $searchValues = [$searchValues];
+                }
+
+                foreach ($searchValues as $vKey => $value) {
+                    if (in_array($searchField, $textFields)
+                        && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value)
+                    ) {
+                        $operator = 'LIKE';
+                    }
+
+                    if (!$vKey) {
+                        $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' ' . $operator . ' :rf' . $searchField . $fKey . $vKey;
+                    } else {
+                        $sql .= ' OR ' . $classname . '.' . $searchField . ' ' . $operator . ' :rf' . $searchField . $fKey . $vKey;
+                    }
+
+                    $this->bindParamsKeys[] = 'rf' . $searchField . $fKey . $vKey;
+                    $this->bindParamsValues[] = $value;
+                }
+
+                $sql .= ')';
+            }
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Prepare the SQL for a custom fields search.
+     *
+     * @param array $searchCriteria
+     * @param Model $modules
+     * @param string $classname
+     * @param string $andOr
+     * @param int $fKey
+     *
+     * @return string
+     */
+    private function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey): string
+    {
+        $sql = '';
+        list($searchField, $operator, $searchValue) = $searchFieldValues;
+        $operator = $this->operators[$operator];
+
+        if (trim($searchValue) !== '') {
+            $customFields = CustomFields::findFirst([
+                'modules_id = ?0 AND name = ?1',
+                'bind' => [$modules->id, $searchField],
+            ]);
+
+            $customFieldValue = $classname . '.value';
+            if ($customFields->type->name == 'number') {
+                $customFieldValue = 'CAST(' . $customFieldValue . ' AS INT)';
+            }
+
+            $sql .= ' AND ' . $classname . '.custom_fields_id = :cfi' . $searchField;
+
+            $this->bindParamsKeys[] = 'cfi' . $searchField;
+            $this->bindParamsValues[] = $customFields->id;
+
+            if ($searchValue == '%%') {
+                $sql .= ' AND (' . $classname . '.value IS NULL OR ' . $classname . '.value = "")';
+            } elseif ($searchValue == '$$') {
+                $sql .= ' AND (' . $classname . '.value IS NOT NULL OR ' . $classname . '.value != "")';
+            } else {
+                if (strpos($searchValue, '|')) {
+                    $searchValue = explode('|', $searchValue);
+                } else {
+                    $searchValue = [$searchValue];
+                }
+
+                foreach ($searchValue as $vKey => $value) {
+                    if (preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value)) {
+                        $operator = 'LIKE';
+                    }
+
+                    if (!$vKey) {
+                        $sql .= ' AND (' . $customFieldValue . ' ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
+                    } else {
+                        $sql .= ' OR ' . $customFieldValue . ' ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
+                    }
+
+                    $this->bindParamsKeys[] = 'cfv' . $searchField . $fKey . $vKey;
+                    $this->bindParamsValues[] = $value;
+                }
+
+                $sql .= ')';
+            }
+        }
+
+        return $sql;
     }
 
     /**
@@ -483,16 +578,25 @@ class QueryParserCustomFields extends QueryParser
         $search = [];
 
         // Split the strings at their colon, set left to key, and right to value.
-        foreach ($splitFields as $field) {
-            $splitField = preg_split('#(:|>|<)#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
+        foreach ($splitFields as $key => $fieldChain) {
+            $hasChain = strpos($fieldChain, ';') !== false;
+            $fieldChain = explode(';', $fieldChain);
 
-            // TEMP: Fix for strings that contain semicolon
-            if (count($splitField) > 3) {
-                $splitField[2] = implode('', array_splice($splitField, 2));
+            foreach($fieldChain as $field) {
+                $splitField = preg_split('#(:|>|<)#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+                if (count($splitField) > 3) {
+                    $splitField[2] = implode('', array_splice($splitField, 2));
+                }
+
+                if (!$hasChain) {
+                    $mapped[$key] = $splitField;
+                } else {
+                    $mapped[$key][] = $splitField;
+                }
+
+                $search[$splitField[0]] = $splitField[2];
             }
-
-            $mapped[] = $splitField;
-            $search[$splitField[0]] = $splitField[2];
         }
 
         return [
