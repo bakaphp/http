@@ -486,9 +486,9 @@ class QueryParserCustomFields extends QueryParser
             $this->bindParamsValues[] = $customFields->id;
 
             if ($searchValue == '%%') {
-                $sql .= ' AND (' . $classname . '.value IS NULL OR ' . $classname . '.value = "")';
+                $sql .= ' ' . $andOr . ' (' . $classname . '.value IS NULL OR ' . $classname . '.value = "")';
             } elseif ($searchValue == '$$') {
-                $sql .= ' AND (' . $classname . '.value IS NOT NULL OR ' . $classname . '.value != "")';
+                $sql .= ' ' . $andOr . ' (' . $classname . '.value IS NOT NULL OR ' . $classname . '.value != "")';
             } else {
                 if (strpos($searchValue, '|')) {
                     $searchValue = explode('|', $searchValue);
@@ -502,7 +502,7 @@ class QueryParserCustomFields extends QueryParser
                     }
 
                     if (!$vKey) {
-                        $sql .= ' AND (' . $customFieldValue . ' ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
+                        $sql .= ' ' . $andOr . ' (' . $customFieldValue . ' ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
                     } else {
                         $sql .= ' OR ' . $customFieldValue . ' ' . $operator . ' :cfv' . $searchField . $fKey . $vKey;
                     }
