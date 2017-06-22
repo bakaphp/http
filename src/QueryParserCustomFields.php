@@ -47,6 +47,11 @@ class QueryParserCustomFields extends QueryParser
     protected $limit = 25;
 
     /**
+     * @var int
+     */
+    protected $offset = 25;
+
+    /**
      * @var array
      */
     protected $relationSearchFields = [];
@@ -137,6 +142,10 @@ class QueryParserCustomFields extends QueryParser
             // Prevent ridiculous limits. Nothing above 200 and nothing below 1.
             if ($limit >= 1 && $limit <= 200) {
                 $this->limit = $limit;
+            } elseif ($limit > 200) {
+                $this->limit = 200;
+            } elseif ($limit < 1) {
+                $this->limit = 25;
             }
         }
 
@@ -210,8 +219,8 @@ class QueryParserCustomFields extends QueryParser
         }
 
         // Calculate the corresponding offset
-        $offset = ($this->page - 1) * $this->limit;
-        $rawSql['sql'] .= " LIMIT {$this->limit} OFFSET {$offset}";
+        $this->offset = ($this->page - 1) * $this->limit;
+        $rawSql['sql'] .= " LIMIT {$this->limit} OFFSET {$this->offset}";
 
         return $rawSql;
     }
@@ -707,5 +716,35 @@ class QueryParserCustomFields extends QueryParser
         }
 
         $this->columns = implode(', ', $columns);
+    }
+
+    /**
+     * Get the limit.
+     *
+     * @return int
+     */
+    public function getLimit(): int
+    {
+        return $this->limit;
+    }
+
+    /**
+     * Get the page.
+     *
+     * @return int
+     */
+    public function getPage(): int
+    {
+        return $this->page;
+    }
+
+    /**
+     * Get the offset.
+     *
+     * @return int
+     */
+    public function getOffset(): int
+    {
+        return $this->offset;
     }
 }
