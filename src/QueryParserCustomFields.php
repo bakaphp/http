@@ -371,8 +371,9 @@ class QueryParserCustomFields extends QueryParser
                 }
 
                 foreach ($searchValues as $vKey => $value) {
-                    if (in_array($searchField, $textFields)
-                        && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value)
+                    if ((in_array($searchField, $textFields)
+                        && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value))
+                        || $value == '%%'
                     ) {
                         $operator = 'LIKE';
                     }
