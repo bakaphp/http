@@ -112,11 +112,14 @@ trait SdkTrait
             $this->response->setStatusCode($response->getStatusCode());
         }
 
-        // Set the response headers based on the response headers of the API.
-        if (is_array($response->getHeader('Content-Type'))) {
-            $this->response->setContentType($response->getHeader('Content-Type')[0]);
-        } else {
-            $this->response->setContentType($response->getHeader('Content-Type'));
+        //Set all the response headers
+        foreach ($response->getHeaders() as $header => $value) {
+            // Set the response headers based on the response headers of the API.
+            if (is_array($header)) {
+                $value = current($value);
+            }
+
+            $this->response->setHeader($header, $value);
         }
 
         return $this->response->setContent($response->getBody());
