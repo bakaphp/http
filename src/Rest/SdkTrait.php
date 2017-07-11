@@ -115,7 +115,7 @@ trait SdkTrait
         //Set all the response headers
         foreach ($response->getHeaders() as $header => $value) {
             // Set the response headers based on the response headers of the API.
-            if (is_array($header)) {
+            if (is_array($value)) {
                 $value = current($value);
             }
 
