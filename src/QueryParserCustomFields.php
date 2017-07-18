@@ -255,8 +255,10 @@ class QueryParserCustomFields extends QueryParser
 
                 foreach ($searchFields as $fKey => $searchFieldValues) {
                     if (is_array(current($searchFieldValues))) {
-                        foreach($searchFieldValues as $chainSearch) {
+                        foreach($searchFieldValues as $csKey => $chainSearch) {
+                            $sql .= !$csKey ? ' (' : '';
                             $sql .= $this->prepareRelatedSql($chainSearch, $model, 'OR', $fKey);
+                            $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
                         }
                     } else {
                         $sql .= $this->prepareRelatedSql($searchFieldValues, $model, 'AND', $fKey);
@@ -278,8 +280,10 @@ class QueryParserCustomFields extends QueryParser
 
             foreach ($this->customSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
-                    foreach($searchFieldValues as $chainSearch) {
+                    foreach($searchFieldValues as $csKey => $chainSearch) {
+                        $sql .= !$csKey ? ' (' : '';
                         $sql .= $this->prepareCustomSql($chainSearch, $modules, $customClassname, 'OR', $fKey);
+                        $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
                     }
                 } else {
                     $sql .= $this->prepareCustomSql($searchFieldValues, $modules, $customClassname, 'AND', $fKey);
@@ -295,8 +299,10 @@ class QueryParserCustomFields extends QueryParser
         if (!empty($this->normalSearchFields)) {
             foreach ($this->normalSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
-                    foreach($searchFieldValues as $chainSearch) {
+                    foreach($searchFieldValues as $csKey => $chainSearch) {
+                        $sql .= !$csKey ? ' (' : '';
                         $sql .= $this->prepareNormalSql($chainSearch, $classname, 'OR', $fKey);
+                        $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
                     }
                 } else {
                     $sql .= $this->prepareNormalSql($searchFieldValues, $classname, 'AND', $fKey);
@@ -306,8 +312,8 @@ class QueryParserCustomFields extends QueryParser
 
         // Replace initial `AND ` or `OR ` to avoid SQL errors.
         $sql = str_replace(
-            ['WHERE AND', 'WHERE OR'],
-            ['WHERE', 'WHERE'],
+            ['WHERE AND', 'WHERE OR', 'WHERE ( OR'],
+            ['WHERE', 'WHERE', 'WHERE ('],
             $sql
         );
 
