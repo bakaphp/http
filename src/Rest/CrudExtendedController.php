@@ -2,8 +2,9 @@
 
 namespace Baka\Http\Rest;
 
-use Baka\Http\QueryParserCustomFields;
 use Baka\Http\QueryParser;
+use Baka\Http\QueryParserCustomFields;
+use Exception;
 use Phalcon\Http\Response;
 use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
 
@@ -93,7 +94,7 @@ class CrudExtendedController extends BaseController
         if ($this->request->hasQuery('format')) {
             $limit = (int) $this->request->getQuery('limit', 'int', 25);
 
-            $newResult =[
+            $newResult = [
                 'data' => $results,
                 'limit' => $limit,
                 'page' => $this->request->getQuery('page', 'int', 1),
