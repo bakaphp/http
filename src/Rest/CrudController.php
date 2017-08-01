@@ -5,7 +5,6 @@ namespace Baka\Http\Rest;
 use Baka\Http\QueryParser;
 use Exception;
 use Phalcon\Mvc\Controller;
-use Phalcon\Paginator\Adapter\Model as PaginatorModel;
 
 /**
  * Default REST API Base Controller
@@ -73,12 +72,12 @@ class CrudController extends BaseController
             unset($params['limit']);
             unset($params['offset']);
 
-            $results =[
-              "data" => $results,
-              "limit" => $this->request->getQuery('limit', 'int'),
-              "page" => $this->request->getQuery('page', 'int'),
-              'total_pages' => ceil($this->model->count($params)/$this->request->getQuery('limit', 'int')),
-          ];
+            $results = [
+                "data" => $results,
+                "limit" => $this->request->getQuery('limit', 'int'),
+                "page" => $this->request->getQuery('page', 'int'),
+                'total_pages' => ceil($this->model->count($params) / $this->request->getQuery('limit', 'int')),
+            ];
         }
 
         return $this->response($results);
@@ -94,13 +93,17 @@ class CrudController extends BaseController
      */
     public function create()
     {
+
         //try to save all the fields we allow
-        if ($this->model->save($this->request->getPost(), $this->createFields)) {
-            return $this->response($this->model->toArray());
-        } else {
-            //if not thorw exception
-            throw new Exception($this->model->getMessages()[0]);
+        {
+            if ($this->model->save($this->request->getPost(), $this->createFields)) {
+                return $this->response($this->model->toArray());
+            } else {
+                //if not thorw exception
+                throw new Exception($this->model->getMessages()[0]);
+            }
         }
+
     }
 
     /**

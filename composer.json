@@ -5,7 +5,6 @@
         "name": "kaioken",
         "email": "max@mctekk.com"
     }],
-    "minimum-stability": "dev",
     "repositories": [{
         "type": "vcs",
         "url": "git@bitbucket.org:mctekk/baka-phalconphp-hmac.git"
