@@ -482,7 +482,7 @@ class QueryParserCustomFields extends QueryParser
     private function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey): string
     {
         $sql = '';
-        list($searchField, $operator, $searchValue) = $searchFieldValues;
+        list($searchField, $operator, $searchValue) = $searchCriteria;
         $operator = $this->operators[$operator];
 
         if (trim($searchValue) !== '') {
@@ -653,15 +653,15 @@ class QueryParserCustomFields extends QueryParser
     public function appendAdditionalParams(): void
     {
         if (!empty($this->additionalSearchFields)) {
-            $this->normalSearchFields = array_merge($this->normalSearchFields, $this->additionalSearchFields);
+            $this->normalSearchFields = array_merge_recursive($this->normalSearchFields, $this->additionalSearchFields);
         }
 
         if (!empty($this->additionalCustomSearchFields)) {
-            $this->customSearchFields = array_merge($this->customSearchFields, $this->additionalCustomSearchFields);
+            $this->customSearchFields = array_merge_recursive($this->customSearchFields, $this->additionalCustomSearchFields);
         }
 
         if (!empty($this->additionalRelationSearchFields)) {
-            $this->relationSearchFields = array_merge($this->relationSearchFields, $this->additionalRelationSearchFields);
+            $this->relationSearchFields = array_merge_recursive($this->relationSearchFields, $this->additionalRelationSearchFields);
         }
     }
 
