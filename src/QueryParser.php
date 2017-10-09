@@ -3,8 +3,8 @@
 namespace Baka\Http;
 
 use Exception;
-use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\Model;
+use Phalcon\Mvc\Model\ResultsetInterface;
 
 /**
  * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret
@@ -110,7 +110,7 @@ class QueryParser extends \Phalcon\Di\Injectable
      * @param  string $unparsed Unparsed search string
      * @return array            An array of fieldname=>value search parameters
      */
-    protected function parseSearchParameters(string $unparsed): array
+    public function parseSearchParameters(string $unparsed): array
     {
         // Strip parens that come with the request string
         $unparsed = trim($unparsed, '()');

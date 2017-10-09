@@ -75,7 +75,7 @@ class QueryParserCustomFields extends QueryParser
     private $operators = [
         ':' => '=',
         '>' => '>=',
-        '<' => '<='
+        '<' => '<=',
     ];
 
     /**
@@ -197,7 +197,7 @@ class QueryParserCustomFields extends QueryParser
                     // We need the table to exist in the query in order for the related sort to work.
                     // Therefore we add it to comply with this by comparing the primary key to not being NULL.
                     $this->relationSearchFields[$modelName][] = [
-                        $primaryKey, ':', '$$'
+                        $primaryKey, ':', '$$',
                     ];
 
                     $sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
@@ -255,7 +255,7 @@ class QueryParserCustomFields extends QueryParser
 
                 foreach ($searchFields as $fKey => $searchFieldValues) {
                     if (is_array(current($searchFieldValues))) {
-                        foreach($searchFieldValues as $csKey => $chainSearch) {
+                        foreach ($searchFieldValues as $csKey => $chainSearch) {
                             $sql .= !$csKey ? ' (' : '';
                             $sql .= $this->prepareRelatedSql($chainSearch, $model, 'OR', $fKey);
                             $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
@@ -280,7 +280,7 @@ class QueryParserCustomFields extends QueryParser
 
             foreach ($this->customSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
-                    foreach($searchFieldValues as $csKey => $chainSearch) {
+                    foreach ($searchFieldValues as $csKey => $chainSearch) {
                         $sql .= !$csKey ? ' (' : '';
                         $sql .= $this->prepareCustomSql($chainSearch, $modules, $customClassname, 'OR', $fKey);
                         $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
@@ -299,7 +299,7 @@ class QueryParserCustomFields extends QueryParser
         if (!empty($this->normalSearchFields)) {
             foreach ($this->normalSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
-                    foreach($searchFieldValues as $csKey => $chainSearch) {
+                    foreach ($searchFieldValues as $csKey => $chainSearch) {
                         $sql .= !$csKey ? ' (' : '';
                         $sql .= $this->prepareNormalSql($chainSearch, $classname, 'OR', $fKey);
                         $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
@@ -582,7 +582,7 @@ class QueryParserCustomFields extends QueryParser
      * @param  string $unparsed Unparsed search string
      * @return array            An array of fieldname=>value search parameters
      */
-    protected function parseSearchParameters(string $unparsed): array
+    public function parseSearchParameters(string $unparsed): array
     {
         // $unparsed = urldecode($unparsed);
         // Strip parens that come with the request string
@@ -598,7 +598,7 @@ class QueryParserCustomFields extends QueryParser
             $hasChain = strpos($fieldChain, ';') !== false;
             $fieldChain = explode(';', $fieldChain);
 
-            foreach($fieldChain as $field) {
+            foreach ($fieldChain as $field) {
                 $splitField = preg_split('#(:|>|<)#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
 
                 if (count($splitField) > 3) {
@@ -713,7 +713,7 @@ class QueryParserCustomFields extends QueryParser
         // Split the columns string into individual columns
         $columns = explode(',', $columns);
 
-        foreach($columns as &$column) {
+        foreach ($columns as &$column) {
             if (strpos($column, '.') === false) {
                 $column = "{$this->model->getSource()}.{$column}";
             } else {
