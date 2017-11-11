@@ -236,7 +236,13 @@ class QueryParserCustomFields extends QueryParser
         $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
         $classReflection = (new \ReflectionClass($this->model));
         $classname = $this->model->getSource();
-        $primaryKey = $metaData->getPrimaryKeyAttributes($this->model)[0];
+
+        $primaryKey = null;
+
+        if ($primaryKey = $metaData->getPrimaryKeyAttributes($this->model)) {
+            $primaryKey = $primaryKey[0];
+        }
+
         $customClassname = $classname . '_custom_fields';
         $bindParamsKeys = [];
         $bindParamsValues = [];
