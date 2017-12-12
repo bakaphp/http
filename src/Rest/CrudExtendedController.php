@@ -117,7 +117,7 @@ class CrudExtendedController extends BaseController
     {
         $request = $this->request->getPost();
 
-        if($this->request->getJsonRawBody(true)){
+        if(empty($request)){
             $request = $this->request->getJsonRawBody(true);
         }
 
@@ -176,7 +176,7 @@ class CrudExtendedController extends BaseController
 
             $request = $this->request->getPut();
             
-            if($this->request->getJsonRawBody(true)){
+            if(empty($request)){
                 $request = $this->request->getJsonRawBody(true);
             }
             //update
