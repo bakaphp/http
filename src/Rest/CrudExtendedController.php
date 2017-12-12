@@ -115,8 +115,14 @@ class CrudExtendedController extends BaseController
      */
     public function create(): Response
     {
+        $request = $this->request->getPost();
+
+        if($this->request->getJsonRawBody(true)){
+            $request = $this->request->getJsonRawBody(true);
+        }
+
         //try to save all the fields we allow
-        if ($this->model->save($this->request->getPost(), $this->createFields)) {
+        if ($this->model->save($request, $this->createFields)) {
             return $this->response($this->model->toArray());
         } else {
             //if not thorw exception
@@ -167,8 +173,14 @@ class CrudExtendedController extends BaseController
     public function edit($id): Response
     {
         if ($objectInfo = $this->model->findFirst($id)) {
+
+            $request = $this->request->getPut();
+            
+            if($this->request->getJsonRawBody(true)){
+                $request = $this->request->getJsonRawBody(true);
+            }
             //update
-            if ($objectInfo->update($this->request->getPut(), $this->updateFields)) {
+            if ($objectInfo->update($request, $this->updateFields)) {
                 return $this->response($objectInfo->toArray());
             } else {
                 //didnt work
