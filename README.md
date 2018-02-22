@@ -20,7 +20,7 @@ To avoid having to create Controller for CRUD api we provide the \Baka\Http\Rest
 
 Add to your routes.php
 
-```
+```php
 <?php
 /**
  * Need to understand if using this can be a performance disadvantage in the future
@@ -82,7 +82,7 @@ foreach ($defaultCrudRoutes as $key => $route) {
 
 Add
 
-```
+```php
 <?php
 
 class AnyController extends Baka\Http\Rest\CrudController
@@ -109,7 +109,7 @@ Parse GET request for a API , giving the user the correct phalcon model params t
 `GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value]&relationships=direcciones` //add to the array a relationship of this model
 
 
-```
+```php
 <?php
 
 $parse = new QueryParser($this->request->getQuery());
@@ -148,7 +148,7 @@ Parse GET request for a API , given the same params as before but with cq (for c
  relationship of this model
 
 
-```
+```php
 <?php
 
 $request = $this->request->getQuery();
@@ -227,7 +227,7 @@ _Just remember to escape any special character you want to send through a query 
 ## Usage
 In order to access the extended query parser features your controller has to extend from `CrudExtendedController`.
 
-```
+```php
 <?php
 
 class ExampleController extends \Baka\Http\Rest\CrudExtendedController
@@ -248,7 +248,7 @@ public function index($id = null): Response
 ```
 
 This method uses the operators that are passed to the query parser via the URL query. Valid operators are (with their SQL equivalents):
-```
+```php
 <?php
 
 $operators = [
@@ -269,7 +269,8 @@ The CRUD handles the default behavior:
 
 In other to use the custom fields you need to extend you controller from CrudCustomFieldsController and define the method `onConstruct()` on this method you define the model of the custom field and the model of the value of this custom fields
 
-```
+```php
+<?php
 public function onConstruct()
 {
     $this->model = new Leads();
