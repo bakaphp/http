@@ -1,6 +1,6 @@
 # Baka Http
 
-Baka Http
+PhalconPHP package to create fast RESTful API's providing a simple way to create fast CRUD's
 
 ## Table of Contents
 1. [Testing](#markdown-header-testing)
