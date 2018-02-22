@@ -105,12 +105,14 @@ public function onConstruct()
 Parse GET request for a API , giving the user the correct phalcon model params to perform a search
 
 ```
+//search by fieds and specify the list of fields
 GET - /v1/?q=(searchField1:value1,searchField2:value2)&fields=id_pct,alias,latitude,longitude,category,chofer,phone,coords,last_report&limit=1&page=2&sort=id_pct|desc
 
-GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value] //filter by relationships
+//filter by relationships
+GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value] 
 
-GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value]&relationships=direccione` //add to the array a relationship of this model
-
+//add to the array a relationship of this model
+GET - /v1/?q=(searchField1:value1,searchField2:value2)&with=vehicles_media[seriesField:value]&relationships=direccione
 ```
 
 
