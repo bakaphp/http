@@ -117,7 +117,7 @@ class CrudExtendedController extends BaseController
     {
         $request = $this->request->getPost();
 
-        if(empty($request)){
+        if (empty($request)) {
             $request = $this->request->getJsonRawBody(true);
         }
 
@@ -173,10 +173,9 @@ class CrudExtendedController extends BaseController
     public function edit($id): Response
     {
         if ($objectInfo = $this->model->findFirst($id)) {
-
             $request = $this->request->getPut();
-            
-            if(empty($request)){
+
+            if (empty($request)) {
                 $request = $this->request->getJsonRawBody(true);
             }
             //update
@@ -187,7 +186,7 @@ class CrudExtendedController extends BaseController
                 throw new Exception($objectInfo->getMessages()[0]);
             }
         } else {
-            throw new Exception("Record not found");
+            throw new Exception('Record not found');
         }
     }
 

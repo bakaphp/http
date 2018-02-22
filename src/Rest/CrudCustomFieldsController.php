@@ -6,7 +6,6 @@ use Baka\Http\QueryParserCustomFields;
 use Exception;
 use Phalcon\Http\Response;
 use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
-use Phalcon\Paginator\Adapter\NativeArray as PaginatorModel;
 
 /**
  * Default REST API Base Controller
@@ -42,7 +41,6 @@ class CrudCustomFieldsController extends CrudExtendedController
         //navigate los records
         $newResult = [];
         foreach ($recordList as $key => $record) {
-
             //field the object
             foreach ($record->getAllCustomFields() as $key => $value) {
                 $record->{$key} = $value;
@@ -56,7 +54,7 @@ class CrudCustomFieldsController extends CrudExtendedController
         if ($this->request->hasQuery('format')) {
             $limit = (int) $this->request->getQuery('limit', 'int', 25);
 
-            $newResult =[
+            $newResult = [
                 'data' => $newResult,
                 'limit' => $limit,
                 'page' => $this->request->getQuery('page', 'int', 1),
@@ -80,7 +78,6 @@ class CrudCustomFieldsController extends CrudExtendedController
      */
     public function getById($id): Response
     {
-
         //find the info
         if ($objectInfo = $this->model->findFirst($id)) {
             $newRecordList = $objectInfo->toFullArray();
@@ -106,7 +103,7 @@ class CrudCustomFieldsController extends CrudExtendedController
 
         //we need even if empty the custome fields
         if (empty($data)) {
-            throw new Exception("No valie info sent");
+            throw new Exception('No valie info sent');
         }
 
         //set the custom fields to update

@@ -10,7 +10,6 @@ use \Phalcon\Mvc\Controller;
  */
 class BaseController extends Controller
 {
-
     /**
      * Set JSON response for AJAX, API request
      *
@@ -22,7 +21,6 @@ class BaseController extends Controller
      */
     public function response($content, int $statusCode = 200, string $statusMessage = 'OK'): Response
     {
-
         $response = [
             'statusCode' => $statusCode,
             'statusMessage' => $statusMessage,

@@ -66,7 +66,6 @@ class RouterCollection
     public function mount()
     {
         if (count($this->collections) > 0) {
-
             foreach ($this->collections as $collection) {
                 $micro = new MicroCollection();
                 // Set the main handler. ie. a controller instance
@@ -99,7 +98,7 @@ class RouterCollection
     private function call(string $method, string $pattern, string $className, string $function)
     {
         if (empty($className) || empty($function)) {
-            throw new Exception("Missing params, we need 2 parameters");
+            throw new Exception('Missing params, we need 2 parameters');
         }
 
         $this->collections[] = [

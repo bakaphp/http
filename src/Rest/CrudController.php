@@ -69,13 +69,12 @@ class CrudController extends BaseController
 
         //this means the want the response in a vuejs format
         if ($this->request->hasQuery('format')) {
-            unset($params['limit']);
-            unset($params['offset']);
+            unset($params['limit'], $params['offset']);
 
             $results = [
-                "data" => $results,
-                "limit" => $this->request->getQuery('limit', 'int'),
-                "page" => $this->request->getQuery('page', 'int'),
+                'data' => $results,
+                'limit' => $this->request->getQuery('limit', 'int'),
+                'page' => $this->request->getQuery('page', 'int'),
                 'total_pages' => ceil($this->model->count($params) / $this->request->getQuery('limit', 'int')),
             ];
         }
@@ -93,7 +92,6 @@ class CrudController extends BaseController
      */
     public function create()
     {
-
         //try to save all the fields we allow
         {
             if ($this->model->save($this->request->getPost(), $this->createFields)) {
@@ -103,7 +101,6 @@ class CrudController extends BaseController
                 throw new Exception($this->model->getMessages()[0]);
             }
         }
-
     }
 
     /**
@@ -155,7 +152,7 @@ class CrudController extends BaseController
                 throw new Exception($objectInfo->getMessages()[0]);
             }
         } else {
-            throw new Exception("Record not found");
+            throw new Exception('Record not found');
         }
     }
 

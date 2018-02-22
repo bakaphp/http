@@ -145,7 +145,7 @@ class QueryParser extends \Phalcon\Di\Injectable
     protected function parseSubquery(string $unparsed): array
     {
         // Strip parens that come with the request string
-        $tableName = explode("(", $unparsed, 2);
+        $tableName = explode('(', $unparsed, 2);
         //print_r($tableName);die();
         $tableName = strtolower($tableName[0]);
 
@@ -168,7 +168,7 @@ class QueryParser extends \Phalcon\Di\Injectable
             $action = 'in';
             $fieldsToRelate = explode('::', $splitFields[0]);
         } else {
-            throw new \Exception("Error Processing Subquery", 1);
+            throw new \Exception('Error Processing Subquery', 1);
         }
 
         $subquery = [
@@ -190,7 +190,7 @@ class QueryParser extends \Phalcon\Di\Injectable
     protected function prepareSearch(array $unparsed, bool $isSearch = false, $hasSubquery = false): array
     {
         $statement = [
-            'conditions' => "1 = 1",
+            'conditions' => '1 = 1',
             'bind' => [],
         ];
 
