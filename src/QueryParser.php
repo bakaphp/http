@@ -2,9 +2,9 @@
 
 namespace Baka\Http;
 
-use Exception;
-use Phalcon\Mvc\Model;
+use Phalcon\Di;
 use Phalcon\Mvc\Model\ResultsetInterface;
+use Phalcon\Mvc\Model;
 
 /**
  * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret
@@ -110,7 +110,7 @@ class QueryParser extends \Phalcon\Di\Injectable
      * @param  string $unparsed Unparsed search string
      * @return array            An array of fieldname=>value search parameters
      */
-    public function parseSearchParameters(string $unparsed): array
+    protected function parseSearchParameters(string $unparsed): array
     {
         // Strip parens that come with the request string
         $unparsed = trim($unparsed, '()');
@@ -145,7 +145,7 @@ class QueryParser extends \Phalcon\Di\Injectable
     protected function parseSubquery(string $unparsed): array
     {
         // Strip parens that come with the request string
-        $tableName = explode('(', $unparsed, 2);
+        $tableName = explode("(", $unparsed, 2);
         //print_r($tableName);die();
         $tableName = strtolower($tableName[0]);
 
@@ -168,7 +168,7 @@ class QueryParser extends \Phalcon\Di\Injectable
             $action = 'in';
             $fieldsToRelate = explode('::', $splitFields[0]);
         } else {
-            throw new \Exception('Error Processing Subquery', 1);
+            throw new \Exception("Error Processing Subquery", 1);
         }
 
         $subquery = [
@@ -190,7 +190,7 @@ class QueryParser extends \Phalcon\Di\Injectable
     protected function prepareSearch(array $unparsed, bool $isSearch = false, $hasSubquery = false): array
     {
         $statement = [
-            'conditions' => '1 = 1',
+            'conditions' => "1 = 1",
             'bind' => [],
         ];
 
@@ -210,8 +210,15 @@ class QueryParser extends \Phalcon\Di\Injectable
             $keys = array_keys($tmpMapped);
             $values = array_values($tmpMapped);
 
+            $di = Di::getDefault();
+
             foreach ($keys as $key => $field) {
-                $conditions .= " AND CAST({$field} AS TEXT) LIKE ?{$key}";
+                if ($di->get('config')->database->adapter == 'Postgresql') {
+	       	           $conditions .= " AND CAST({$field} AS TEXT) LIKE ?{$key}";
+    	    	}
+    	        else {
+    	    	    $conditions .= " AND {$field} LIKE ?{$key}";
+    	    	}
             }
 
             if (isset($betweenMap)) {
@@ -259,11 +266,11 @@ class QueryParser extends \Phalcon\Di\Injectable
     }
 
     /**
-     * Based on the given relaitonship, add the relation array to the Resultset
+     * Based on the given relaitonship , add the relation array to the Resultset
      *
      * @param  string $relationships
-     * @param  [array|object] $results
-     * @return array
+     * @param  [array|object] $results     by reference to clean the object
+     * @return mixed
      */
     public static function parseRelationShips(string $relationships, &$results): array
     {
@@ -271,11 +278,11 @@ class QueryParser extends \Phalcon\Di\Injectable
 
         $newResults = [];
 
-        // if its a list
+        //if its a list
         if ($results instanceof ResultsetInterface && count($results) >= 1) {
             foreach ($results as $key => $result) {
                 //clean records conver to array
-                $newResults[$key] = $result->toArray();
+            $newResults[$key] = $result->toArray();
                 foreach ($relationships as $relationship) {
                     if ($results[$key]->$relationship) {
                         $newResults[$key][$relationship] = $results[$key]->$relationship;
@@ -283,7 +290,7 @@ class QueryParser extends \Phalcon\Di\Injectable
                 }
             }
         } else {
-            // if its only 1 record
+            //if its only 1 record
             if ($results instanceof Model) {
                 $newResults = $results->toArray();
                 foreach ($relationships as $relationship) {
