@@ -211,7 +211,7 @@ class QueryParser extends \Phalcon\Di\Injectable
             $values = array_values($tmpMapped);
 
             foreach ($keys as $key => $field) {
-                $conditions .= " AND {$field} LIKE ?{$key}";
+                $conditions .= " AND CAST({$field} AS TEXT) LIKE ?{$key}";
             }
 
             if (isset($betweenMap)) {
