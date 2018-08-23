@@ -140,10 +140,8 @@ class QueryParserCustomFields extends QueryParser
         if (array_key_exists('limit', $this->request)) {
             $limit = (int) $this->request['limit'];
             // Prevent ridiculous limits. Nothing above 200 and nothing below 1.
-            if ($limit >= 1 && $limit <= 200) {
+            if ($limit >= 1) {
                 $this->limit = $limit;
-            } elseif ($limit > 200) {
-                $this->limit = 200;
             } elseif ($limit < 1) {
                 $this->limit = 25;
             }
