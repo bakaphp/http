@@ -36,7 +36,7 @@ class BaseController extends Controller
         $response->setStatusCode($statusCode, $statusMessage);
         $response->setJsonContent($content);
 
-        return $response->send();
+        return $response;
     }
 
     /**
