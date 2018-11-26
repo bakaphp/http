@@ -224,4 +224,15 @@ class RouterCollection
     {
         $this->call('options', $pattern, $param[0], $param[1], $param);
     }
+    
+     /**
+     * Instead of using magic we define each method function
+     *
+     * @param  string $pattern
+     * @param  array  $param
+     */
+    public function head(string $pattern, array $param)
+    {
+        return $this->call('head', $pattern, $param[0], $param[1]);
+    }
 }

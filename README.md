@@ -303,7 +303,7 @@ Thats it, your controller now manages the custom fields as if they wher properti
 
 # Normal API CRUD
 
-Just extend your API controller from CrudController and you will have the following functions
+Just extend your API controller from CrudController and you will have the following functions:
 
 The CRUD handles the default behaviero:
 - GET /v1/leads -> get all

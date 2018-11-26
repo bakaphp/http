@@ -636,7 +636,7 @@ class QueryParserCustomFields extends QueryParser
      */
     private function getTextFields($table): array
     {
-        $columnsData = $this->db->describeColumns($table);
+        $columnsData = $this->model->getReadConnection()->describeColumns($table);
         $textFields = [];
 
         foreach ($columnsData as $column) {
