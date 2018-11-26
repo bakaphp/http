@@ -9,13 +9,17 @@
     "repositories": [{
         "type": "vcs",
         "url": "git@bitbucket.org:mctekk/baka-phalconphp-hmac.git"
+    },
+    {
+        "type": "vcs",
+        "url": "git@github.com:bakaphp/phalcon-jwt-auth.git"
     }],
     "require": {
         "php": ">=7.0",
         "ext-phalcon": ">=3.0.0",
         "vlucas/phpdotenv": "^2.0",
         "phalcon/incubator": ">=3.0.0",
-        "dmkit/phalcon-jwt-auth": "dev-master"
+        "dmkit/phalcon-jwt-auth": "1.1.0"
     },
     "require-dev": {
         "codeception/verify": "*",
