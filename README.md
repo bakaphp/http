@@ -78,7 +78,7 @@ foreach ($defaultCrudRoutes as $key => $route) {
 }
 ```
 
-# You can also pass params to the routes to disable JWT and in the future assigne a middleware
+You can also pass params to the routes to disable JWT and in the future assigne a middleware
 ```php
 <?php
 
