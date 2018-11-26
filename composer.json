@@ -14,14 +14,14 @@
         "php": ">=7.0",
         "ext-phalcon": ">=3.0.0",
         "vlucas/phpdotenv": "^2.0",
-        "phalcon/incubator": ">=3.0.0",
-        "dmkit/phalcon-jwt-auth": "dev-master"
+        "phalcon/incubator": ">=3.0.0"
     },
     "require-dev": {
         "codeception/verify": "*",
         "vlucas/phpdotenv": "^2.0",
         "baka/phalconphp-hmac": "dev-auth-phalcon-3",
-        "phalcon/incubator": "~3.3"
+        "phalcon/incubator": "~3.3",
+        "dmkit/phalcon-jwt-auth": "dev-master"
     },
     "autoload": {
         "psr-4": {
