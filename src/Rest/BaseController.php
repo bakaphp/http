@@ -34,6 +34,7 @@ class BaseController extends Controller
         // Create a response since it's an ajax
         $response = new Response();
         $response->setStatusCode($statusCode, $statusMessage);
+        $response->setContentType('application/vnd.api+json', 'UTF-8');
         $response->setJsonContent($content);
 
         return $response;

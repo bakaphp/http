@@ -37,6 +37,9 @@ class RouterCollection
     private $application;
     private $prefix = null;
     private $collections = [];
+    private static $jwt = [];
+    private static $hasJwtOptionsSetup = false;
+    private static $middleware = [];
 
     /**
      * Constructor , we pass the micro app
@@ -53,7 +56,7 @@ class RouterCollection
      *
      * @param string $prefix
      */
-    public function setPrefix(string $prefix)
+    public function setPrefix(string $prefix): void
     {
         $this->prefix = $prefix;
     }
@@ -63,7 +66,7 @@ class RouterCollection
      *
      * @return void
      */
-    public function mount()
+    public function mount(): void
     {
         if (count($this->collections) > 0) {
             foreach ($this->collections as $collection) {
@@ -95,32 +98,59 @@ class RouterCollection
      * @param  string $function
      * @return void
      */
-    private function call(string $method, string $pattern, string $className, string $function)
+    private function call(string $method, string $pattern, string $className, string $function, array $options): void
     {
         if (empty($className) || empty($function)) {
             throw new Exception('Missing params, we need 2 parameters');
         }
 
-        $this->collections[] = [
+        $route = [
             'method' => $method,
             'pattern' => $pattern,
             'className' => $className,
             'function' => $function,
         ];
+        $this->collections[] = $route;
+
+        if (array_key_exists('options', $options)) {
+            $this->setOptions($route, $options);
+        }
 
         return;
     }
 
     /**
-     * Insted of using magic we define each method function
+     * Set routers options JWT
      *
-     * @param  string $pattern
-     * @param  array  $param
+     * @todo add Middleware that the router will call
+     * @param array $route
+     * @param array $options
      * @return void
      */
-    public function get(string $pattern, array $param)
+    private function setOptions(array $route, array $options): void
     {
-        return $this->call('get', $pattern, $param[0], $param[1]);
+        if (array_key_exists('jwt', $options['options'])) {
+            //only add if we want to ignore this url
+            if (!$options['options']['jwt']) {
+                self::$hasJwtOptionsSetup = true;
+                self::$jwt[] = $this->prefix . $route['pattern'] . ':' . strtoupper($route['method']);
+            }
+        }
+    }
+
+    /**
+     * Get the ignore JWT url
+     *
+     * @return array
+     */
+    public static function getJwtIgnoreRoutes(): array
+    {
+        $ignoreUrl = [];
+        if (self::$hasJwtOptionsSetup) {
+            $ignoreUrl = self::$jwt;
+        }
+
+        return $ignoreUrl;
     }
 
     /**
@@ -130,9 +160,9 @@ class RouterCollection
      * @param  array  $param
      * @return void
      */
-    public function put(string $pattern, array $param)
+    public function get(string $pattern, array $param): void
     {
-        return $this->call('put', $pattern, $param[0], $param[1]);
+        $this->call('get', $pattern, $param[0], $param[1], $param);
     }
 
     /**
@@ -142,9 +172,9 @@ class RouterCollection
      * @param  array  $param
      * @return void
      */
-    public function post(string $pattern, array $param)
+    public function put(string $pattern, array $param) : void
     {
-        return $this->call('post', $pattern, $param[0], $param[1]);
+        $this->call('put', $pattern, $param[0], $param[1], $param);
     }
 
     /**
@@ -154,9 +184,9 @@ class RouterCollection
      * @param  array  $param
      * @return void
      */
-    public function delete(string $pattern, array $param)
+    public function post(string $pattern, array $param) : void
     {
-        return $this->call('delete', $pattern, $param[0], $param[1]);
+        $this->call('post', $pattern, $param[0], $param[1], $param);
     }
 
     /**
@@ -166,9 +196,9 @@ class RouterCollection
      * @param  array  $param
      * @return void
      */
-    public function patch(string $pattern, array $param)
+    public function delete(string $pattern, array $param) : void
     {
-        return $this->call('patch', $pattern, $param[0], $param[1]);
+        $this->call('delete', $pattern, $param[0], $param[1], $param);
     }
 
     /**
@@ -178,9 +208,21 @@ class RouterCollection
      * @param  array  $param
      * @return void
      */
-    public function options(string $pattern, array $param)
+    public function patch(string $pattern, array $param) : void
     {
-        return $this->call('options', $pattern, $param[0], $param[1]);
+        $this->call('patch', $pattern, $param[0], $param[1], $param);
+    }
+
+    /**
+     * Insted of using magic we define each method function
+     *
+     * @param  string $pattern
+     * @param  array  $param
+     * @return void
+     */
+    public function options(string $pattern, array $param) : void
+    {
+        $this->call('options', $pattern, $param[0], $param[1], $param);
     }
     
      /**

@@ -47,27 +47,27 @@ foreach ($defaultCrudRoutes as $key => $route) {
     $controllerName = ucfirst($name) . 'Controller';
 
     $router->get('/v1/' . $route, [
-      'Mesocom\Controllers\\' . $controllerName,
+      'Gewaer\Controllers\\' . $controllerName,
       'index',
     ]);
 
     $router->post('/v1/' . $route, [
-      'Mesocom\Controllers\\' . $controllerName,
+      'Gewaer\Controllers\\' . $controllerName,
       'create',
     ]);
 
     $router->get('/v1/' . $route . '/{id}', [
-      'Mesocom\Controllers\\' . $controllerName,
+      'Gewaer\Controllers\\' . $controllerName,
       'getById',
     ]);
 
     $router->put('/v1/' . $route . '/{id}', [
-      'Mesocom\Controllers\\' . $controllerName,
+      'Gewaer\Controllers\\' . $controllerName,
       'edit',
     ]);
 
     $router->delete('/v1/' . $route . '/{id}', [
-      'Mesocom\Controllers\\' . $controllerName,
+      'Gewaer\Controllers\\' . $controllerName,
       'delete',
     ]);
 
@@ -76,6 +76,20 @@ foreach ($defaultCrudRoutes as $key => $route) {
     */
     $router->mount();
 }
+```
+
+# You can also pass params to the routes to disable JWT and in the future assigne a middleware
+```php
+<?php
+
+$router->setPrefix('/v1');
+$router->get('/', [
+    'Gewaer\Api\Controllers\IndexController',
+    'index',
+    'options' => [
+        'jwt' => false,
+    ]
+]);
 ```
 
 ## Controller configuration
