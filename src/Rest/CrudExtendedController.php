@@ -35,9 +35,9 @@ class CrudExtendedController extends BaseController
     protected $updateFields = [];
 
     /**
-     * the model that interacts witht his controler
+     * PhalconPHP Model
      *
-     * @var array
+     * @var object
      */
     public $model;
 
@@ -57,10 +57,10 @@ class CrudExtendedController extends BaseController
     protected $additionalRelationSearchFields = [];
 
     /**
-     * List of business
+     * List of data
      *
      * @method GET
-     * url /v1/business
+     * url /v1/data
      *
      * @param int $id
      * @return \Phalcon\Http\Response
@@ -109,9 +109,9 @@ class CrudExtendedController extends BaseController
      * Add a new item
      *
      * @method POST
-     * @url /v1/business
+     * @url /v1/data
      *
-     * @return Phalcon\Http\Response
+     * @return \Phalcon\Http\Response
      */
     public function create(): Response
     {
@@ -136,9 +136,9 @@ class CrudExtendedController extends BaseController
      * @param mixed $id
      *
      * @method GET
-     * @url /v1/business/{id}
+     * @url /v1/data/{id}
      *
-     * @return Phalcon\Http\Response
+     * @return \Phalcon\Http\Response
      */
     public function getById($id): Response
     {
@@ -166,9 +166,9 @@ class CrudExtendedController extends BaseController
      * Update a new Entry
      *
      * @method PUT
-     * @url /v1/business/{id}
+     * @url /v1/data/{id}
      *
-     * @return Phalcon\Http\Response
+     * @return \Phalcon\Http\Response
      */
     public function edit($id): Response
     {
@@ -194,9 +194,9 @@ class CrudExtendedController extends BaseController
      * delete a new Entry
      *
      * @method DELETE
-     * @url /v1/business/{id}
+     * @url /v1/data/{id}
      *
-     * @return Phalcon\Http\Response
+     * @return \Phalcon\Http\Response
      */
     public function delete($id): Response
     {
