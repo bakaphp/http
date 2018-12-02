@@ -98,7 +98,7 @@ class RouterCollection
      * @param  string $function
      * @return void
      */
-    private function call(string $method, string $pattern, string $className, string $function, array $options): void
+    private function call(string $method, string $pattern, string $className, string $function, array $options = []): void
     {
         if (empty($className) || empty($function)) {
             throw new Exception('Missing params, we need 2 parameters');
