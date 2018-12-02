@@ -2,8 +2,8 @@
 
 namespace Baka\Http\Rest;
 
-use \Phalcon\Http\Response;
-use \Phalcon\Mvc\Controller;
+use Phalcon\Http\Response;
+use Phalcon\Mvc\Controller;
 
 /**
  * Default REST API Base Controller
