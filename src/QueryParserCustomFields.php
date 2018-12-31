@@ -760,4 +760,28 @@ class QueryParserCustomFields extends QueryParser
     {
         return $this->offset;
     }
+
+    /**
+     * Based on the given relaitonship , add the relation array to the Resultset
+     *
+     * @param  string $relationships
+     * @param  Model $results
+     * @return array
+     */
+    public static function parseRelationShips(string $relationships, Model &$results) : array
+    {
+        $relationships = explode(',', $relationships);
+
+        $newResults = [];
+
+        $newResults = $results->toFullArray();
+        foreach ($relationships as $relationship) {
+            if ($results->$relationship) {
+                $newResults[$relationship] = $results->$relationship;
+            }
+        }
+
+        unset($results);
+        return $newResults;
+    }
 }
