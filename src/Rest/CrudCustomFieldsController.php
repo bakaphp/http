@@ -35,24 +35,31 @@ class CrudCustomFieldsController extends CrudExtendedController
         $parse->appendRelationParams($this->additionalRelationSearchFields);
         $params = $parse->request();
 
-        $recordList = (new SimpleRecords(null, $this->model, $this->model->getReadConnection()->query($params['sql'], $params['bind'])));
+        $results = (new SimpleRecords(null, $this->model, $this->model->getReadConnection()->query($params['sql'], $params['bind'])));
         $count = $this->model->getReadConnection()->query($params['countSql'], $params['bind'])->fetch(\PDO::FETCH_OBJ)->total;
+        $relationships = false;
+
+        // Relationships, but we have to change it to sparo full implementation
+        if ($this->request->hasQuery('relationships')) {
+            $relationships = $this->request->getQuery('relationships', 'string');
+        }
 
         //navigate los records
         $newResult = [];
-        foreach ($recordList as $key => $record) {
+        foreach ($results as $key => $record) {
             //field the object
             foreach ($record->getAllCustomFields() as $key => $value) {
                 $record->{$key} = $value;
             }
-            $newResult[] = $record->toFullArray();
+
+            $newResult[] = !$relationships ? $record->toFullArray() : QueryParserCustomFields::parseRelationShips($relationships, $record);
         }
 
-        unset($recordList);
+        unset($results);
 
         //this means the want the response in a vuejs format
         if ($this->request->hasQuery('format')) {
-            $limit = (int) $this->request->getQuery('limit', 'int', 25);
+            $limit = (int)$this->request->getQuery('limit', 'int', 25);
 
             $newResult = [
                 'data' => $newResult,
@@ -79,13 +86,22 @@ class CrudCustomFieldsController extends CrudExtendedController
     public function getById($id): Response
     {
         //find the info
-        if ($objectInfo = $this->model->findFirst($id)) {
-            $newRecordList = $objectInfo->toFullArray();
+        $record = $this->model->findFirst($id);
 
-            return $this->response($newRecordList);
-        } else {
-            throw new Exception(_('Record not found'));
+        if (!is_object($record)) {
+            throw new UnprocessableEntityHttpException('Record not found');
         }
+
+        $relationships = false;
+
+        //get relationship
+        if ($this->request->hasQuery('relationships')) {
+            $relationships = $this->request->getQuery('relationships', 'string');
+        }
+
+        $result = !$relationships ? $record->toFullArray() : QueryParserCustomFields::parseRelationShips($relationships, $record);
+
+        return $this->response($result);
     }
 
     /**
@@ -99,18 +115,22 @@ class CrudCustomFieldsController extends CrudExtendedController
      */
     public function create(): Response
     {
-        $data = $this->request->getPost();
+        $request = $this->request->getPost();
+
+        if (empty($request)) {
+            $request = $this->request->getJsonRawBody(true);
+        }
 
         //we need even if empty the custome fields
-        if (empty($data)) {
+        if (empty($request)) {
             throw new Exception('No valie info sent');
         }
 
         //set the custom fields to update
-        $this->model->setCustomFields($this->request->getPost());
+        $this->model->setCustomFields($request);
 
         //try to save all the fields we allow
-        if ($this->model->save($data, $this->createFields)) {
+        if ($this->model->save($request, $this->createFields)) {
             return $this->getById($this->model->id);
         } else {
             //if not thorw exception
@@ -132,17 +152,21 @@ class CrudCustomFieldsController extends CrudExtendedController
     public function edit($id): Response
     {
         if ($objectInfo = $this->model->findFirst($id)) {
-            $data = $this->request->getPut();
+            $request = $this->request->getPut();
 
-            if (empty($data)) {
+            if (empty($request)) {
+                $request = $this->request->getJsonRawBody(true);
+            }
+
+            if (empty($request)) {
                 throw new Exception('No valid data sent.');
             }
 
             //set the custom fields to update
-            $objectInfo->setCustomFields($data);
+            $objectInfo->setCustomFields($request);
 
             //update
-            if ($objectInfo->update($data, $this->updateFields)) {
+            if ($objectInfo->update($request, $this->updateFields)) {
                 return $this->getById($id);
             } else {
                 //didnt work
