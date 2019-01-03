@@ -5,6 +5,7 @@ namespace Baka\Http;
 use Baka\Database\CustomFields\CustomFields;
 use Baka\Database\CustomFields\Modules;
 use Baka\Database\Model;
+use Exception;
 
 /**
  * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret
@@ -774,7 +775,7 @@ class QueryParserCustomFields extends QueryParser
 
         $newResults = [];
 
-        if (!($results instanceof Baka)) {
+        if (!($results instanceof Model)) {
             throw new Exception(_('Result needs to be a Baka Model'));
         }
 
