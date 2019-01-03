@@ -768,11 +768,15 @@ class QueryParserCustomFields extends QueryParser
      * @param  Model $results
      * @return array
      */
-    public static function parseRelationShips(string $relationships, Model &$results) : array
+    public static function parseRelationShips(string $relationships, &$results) : array
     {
         $relationships = explode(',', $relationships);
 
         $newResults = [];
+
+        if (!($results instanceof Baka)) {
+            throw new Exception(_('Result needs to be a Baka Model'));
+        }
 
         $newResults = $results->toFullArray();
         foreach ($relationships as $relationship) {
