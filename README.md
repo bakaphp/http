@@ -1,4 +1,4 @@
-# Baka Http
+# Baka HTTP
 
 PhalconPHP package to create fast RESTful API's providing a simple way to create fast CRUD's
 
