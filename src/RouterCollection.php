@@ -133,7 +133,7 @@ class RouterCollection
             //only add if we want to ignore this url
             if (!$options['options']['jwt']) {
                 self::$hasJwtOptionsSetup = true;
-                self::$jwt[] = $this->prefix . $route['pattern'] . ':' . strtoupper($route['method']);
+                self::$jwt[] = 'regex:^' . $this->prefix . $route['pattern'] . '$:' . strtoupper($route['method']);
             }
         }
     }
@@ -224,13 +224,13 @@ class RouterCollection
     {
         $this->call('options', $pattern, $param[0], $param[1], $param);
     }
-    
-     /**
-     * Instead of using magic we define each method function
-     *
-     * @param  string $pattern
-     * @param  array  $param
-     */
+
+    /**
+    * Instead of using magic we define each method function
+    *
+    * @param  string $pattern
+    * @param  array  $param
+    */
     public function head(string $pattern, array $param)
     {
         return $this->call('head', $pattern, $param[0], $param[1]);
