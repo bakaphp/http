@@ -1,6 +1,6 @@
 <?php
 
-namespace Baka\Http\Rest;
+namespace Baka\Http\Api;
 
 use Baka\Http\QueryParserCustomFields;
 use Exception;
@@ -8,7 +8,7 @@ use Phalcon\Http\Response;
 use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
 
 /**
- * Default REST API Base Controller
+ * Default REST API Base Controller.
  */
 class CrudCustomFieldsController extends CrudExtendedController
 {

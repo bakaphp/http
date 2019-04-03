@@ -1,6 +1,6 @@
 <?php
 
-namespace Baka\Http\Rest;
+namespace Baka\Http\Api;
 
 use Baka\Hmac\Client as ClientSecurity;
 use Phalcon\Http\Response;
@@ -76,7 +76,7 @@ trait SdkTrait
     }
 
     /**
-     * Function tasked with delegating API requests to the configured API
+     * Function tasked with delegating API requests to the configured API.
      *
      * @todo Verify headers being received from the API response before returning the request response.
      *
@@ -126,7 +126,7 @@ trait SdkTrait
     }
 
     /**
-     * Function that executes the request to the configured API
+     * Function that executes the request to the configured API.
      *
      * @param string $method - The request method
      * @param string $url - The request URL
@@ -139,8 +139,7 @@ trait SdkTrait
         //we cant send to the API the array with get GET, JSON, form_params parameters
         //the API doesnt get it taht way, guzzle sends it directly
         //so we extract it
-        $rawData = count(array_keys($data)) > 0 ?  $data[array_keys($data)[0]] : [];
-
+        $rawData = count(array_keys($data)) > 0 ? $data[array_keys($data)[0]] : [];
 
         $client = (new ClientSecurity($this->apiPublicKey, $this->apiPrivateKey, $rawData, $headers))->getGuzzle();
 

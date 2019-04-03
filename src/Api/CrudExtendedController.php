@@ -1,6 +1,6 @@
 <?php
 
-namespace Baka\Http\Rest;
+namespace Baka\Http\Api;
 
 use Baka\Http\QueryParser;
 use Baka\Http\QueryParserCustomFields;
@@ -9,33 +9,33 @@ use Phalcon\Http\Response;
 use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
 
 /**
- * Default REST API Base Controller
+ * Default REST API Base Controller.
  */
 class CrudExtendedController extends BaseController
 {
     /**
-     * Soft delete option, default 1
+     * Soft delete option, default 1.
      *
      * @var int
      */
     public $softDelete = 0;
 
     /**
-     * fields we accept to create
+     * fields we accept to create.
      *
      * @var array
      */
     protected $createFields = [];
 
     /**
-     * fields we accept to update
+     * fields we accept to update.
      *
      * @var array
      */
     protected $updateFields = [];
 
     /**
-     * PhalconPHP Model
+     * PhalconPHP Model.
      *
      * @var object
      */
@@ -57,7 +57,7 @@ class CrudExtendedController extends BaseController
     protected $additionalRelationSearchFields = [];
 
     /**
-     * List of data
+     * List of data.
      *
      * @method GET
      * url /v1/data
@@ -106,7 +106,7 @@ class CrudExtendedController extends BaseController
     }
 
     /**
-     * Add a new item
+     * Add a new item.
      *
      * @method POST
      * @url /v1/data
@@ -131,7 +131,7 @@ class CrudExtendedController extends BaseController
     }
 
     /**
-     * get item
+     * get item.
      *
      * @param mixed $id
      *
@@ -163,7 +163,7 @@ class CrudExtendedController extends BaseController
     }
 
     /**
-     * Update a new Entry
+     * Update a new Entry.
      *
      * @method PUT
      * @url /v1/data/{id}
@@ -191,7 +191,7 @@ class CrudExtendedController extends BaseController
     }
 
     /**
-     * delete a new Entry
+     * delete a new Entry.
      *
      * @method DELETE
      * @url /v1/data/{id}

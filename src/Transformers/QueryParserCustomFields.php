@@ -1,6 +1,6 @@
 <?php
 
-namespace Baka\Http;
+namespace Baka\Http\Transformers;
 
 use Baka\Database\CustomFields\CustomFields;
 use Baka\Database\CustomFields\Modules;
@@ -8,7 +8,7 @@ use Baka\Database\Model;
 use Exception;
 
 /**
- * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret
+ * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret.
  *
  * Supports queries with the following paramters:
  *   Searching:
@@ -90,7 +90,7 @@ class QueryParserCustomFields extends QueryParser
     private $bindParamsValues = [];
 
     /**
-     * Pass the request
+     * Pass the request.
      */
     public function __construct(array $request, Model $model)
     {
@@ -227,7 +227,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * gien the request array , get the custom query to find the results
+     * gien the request array , get the custom query to find the results.
      *
      * @param  array  $params
      * @return string
@@ -542,7 +542,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Preparse the parameters to be used in the search
+     * Preparse the parameters to be used in the search.
      *
      * @return void
      */
@@ -554,7 +554,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Parse relationship query parameters
+     * Parse relationship query parameters.
      *
      * @param  array $unparsed
      *
@@ -584,7 +584,7 @@ class QueryParserCustomFields extends QueryParser
      * Unparsed, they will look like this:
      *    (name:Benjamin Framklin,location:Philadelphia)
      * Parsed:
-     *     array('name'=>'Benjamin Franklin', 'location'=>'Philadelphia')
+     *     array('name'=>'Benjamin Franklin', 'location'=>'Philadelphia').
      *
      * @param  string $unparsed Unparsed search string
      * @return array            An array of fieldname=>value search parameters
@@ -630,7 +630,7 @@ class QueryParserCustomFields extends QueryParser
 
     /**
      * get the text field from this model database
-     * so we can do like search
+     * so we can do like search.
      *
      * @param  string $table
      * @return array
@@ -653,7 +653,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append any defined additional parameters
+     * Append any defined additional parameters.
      *
      * @return void
      */
@@ -673,7 +673,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append additional search parameters
+     * Append additional search parameters.
      *
      * @param array $params
      *
@@ -685,7 +685,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append additional search parameters
+     * Append additional search parameters.
      *
      * @param array $params
      *
@@ -697,7 +697,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append additional search parameters
+     * Append additional search parameters.
      *
      * @param array $params
      *
@@ -763,7 +763,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Based on the given relaitonship , add the relation array to the Resultset
+     * Based on the given relaitonship , add the relation array to the Resultset.
      *
      * @param  string $relationships
      * @param  Model $results

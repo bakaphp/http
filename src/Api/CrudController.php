@@ -1,6 +1,6 @@
 <?php
 
-namespace Baka\Http\Rest;
+namespace Baka\Http\Api;
 
 use Baka\Http\QueryParser;
 use Exception;

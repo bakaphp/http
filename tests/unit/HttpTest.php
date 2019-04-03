@@ -1,13 +1,13 @@
 <?php
 
-use \Baka\Http\QueryParser;
+use Baka\Http\Transformers\QueryParser;
 
-class HttpTest extends \PHPUnit_Framework_TestCase
+class HttpTest extends PhalconUnitTestCase
 {
-    use \Baka\Http\Rest\SdkTrait;
+    use \Baka\Http\Api\SdkTrait;
 
     /**
-     * Test the $_GET parser
+     * Test the $_GET parser.
      *
      * @return boolean
      */
@@ -22,10 +22,23 @@ class HttpTest extends \PHPUnit_Framework_TestCase
         $params['sort'] = 'id_pct|desc';
 
         $parse = new QueryParser($params);
-        print_r($parse->request());
-        //die();
+        $request = $parse->request();
+
+        //confirm the keys we are expecting from the parser
+        //@todo look for ways to validate the SQL directly with a local database
+        $this->assertArrayHasKey('bind', $request);
+        $this->assertArrayHasKey('columns', $request);
+        $this->assertArrayHasKey('order', $request);
+        $this->assertArrayHasKey('limit', $request);
+        $this->assertArrayHasKey('offset', $request);
     }
 
+    /**
+     * Test for the SDK.
+     *
+     * @deprecated version
+     * @return void
+     */
     public function testSdk()
     {
         $userData = ['user_id' => 1, 'agency' => 2];
@@ -36,17 +49,5 @@ class HttpTest extends \PHPUnit_Framework_TestCase
             'users-id' => $userData['user_id'],
             'agencies-id' => $userData['agency'],
         ]);
-    }
-
-    /**
-     * this runs before everyone
-     */
-    protected function setUp()
-    {
-
-    }
-
-    protected function tearDown()
-    {
     }
 }

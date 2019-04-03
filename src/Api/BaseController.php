@@ -1,17 +1,17 @@
 <?php
 
-namespace Baka\Http\Rest;
+namespace Baka\Http\Api;
 
 use Phalcon\Http\Response;
 use Phalcon\Mvc\Controller;
 
 /**
- * Default REST API Base Controller
+ * Default REST API Base Controller.
  */
 class BaseController extends Controller
 {
     /**
-     * Set JSON response for AJAX, API request
+     * Set JSON response for AJAX, API request.
      *
      * @param mixed $content
      * @param integer $statusCode
@@ -42,7 +42,7 @@ class BaseController extends Controller
     }
 
     /**
-     * Get the unique identifier
+     * Get the unique identifier.
      *
      * @return string IP + session_id
      */

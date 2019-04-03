@@ -1,13 +1,13 @@
 <?php
 
-namespace Baka\Http;
+namespace Baka\Http\Router;
 
 use \Exception;
 use \Phalcon\Mvc\Micro;
 use \Phalcon\Mvc\Micro\Collection as MicroCollection;
 
 /**
- * Router collection for Micro Phalcon API, insted of having to do
+ * Router collection for Micro Phalcon API, insted of having to do.
  *
  * Phalcon Way
  * $index = new MicroCollection();
@@ -32,7 +32,7 @@ use \Phalcon\Mvc\Micro\Collection as MicroCollection;
  *
  *  $router->mount();
  */
-class RouterCollection
+class Collection
 {
     private $application;
     private $prefix = null;
@@ -42,7 +42,7 @@ class RouterCollection
     private static $middleware = [];
 
     /**
-     * Constructor , we pass the micro app
+     * Constructor , we pass the micro app.
      *
      * @param Micro $application
      */
@@ -52,7 +52,7 @@ class RouterCollection
     }
 
     /**
-     * If the router is user a prefix
+     * If the router is user a prefix.
      *
      * @param string $prefix
      */
@@ -62,7 +62,7 @@ class RouterCollection
     }
 
     /**
-     * Mount the collection to the micro app router
+     * Mount the collection to the micro app router.
      *
      * @return void
      */
@@ -90,7 +90,7 @@ class RouterCollection
     }
 
     /**
-     * Add the call function to the collection array
+     * Add the call function to the collection array.
      *
      * @param  string $method
      * @param  string $pattern
@@ -120,7 +120,7 @@ class RouterCollection
     }
 
     /**
-     * Set routers options JWT
+     * Set routers options JWT.
      *
      * @todo add Middleware that the router will call
      * @param array $route
@@ -139,7 +139,7 @@ class RouterCollection
     }
 
     /**
-     * Get the ignore JWT url
+     * Get the ignore JWT url.
      *
      * @return array
      */
@@ -154,7 +154,7 @@ class RouterCollection
     }
 
     /**
-     * Insted of using magic we define each method function
+     * Insted of using magic we define each method function.
      *
      * @param  string $pattern
      * @param  array  $param
@@ -166,7 +166,7 @@ class RouterCollection
     }
 
     /**
-     * Insted of using magic we define each method function
+     * Insted of using magic we define each method function.
      *
      * @param  string $pattern
      * @param  array  $param
@@ -178,7 +178,7 @@ class RouterCollection
     }
 
     /**
-     * Insted of using magic we define each method function
+     * Insted of using magic we define each method function.
      *
      * @param  string $pattern
      * @param  array  $param
@@ -190,7 +190,7 @@ class RouterCollection
     }
 
     /**
-     * Insted of using magic we define each method function
+     * Insted of using magic we define each method function.
      *
      * @param  string $pattern
      * @param  array  $param
@@ -202,7 +202,7 @@ class RouterCollection
     }
 
     /**
-     * Insted of using magic we define each method function
+     * Insted of using magic we define each method function.
      *
      * @param  string $pattern
      * @param  array  $param
@@ -214,7 +214,7 @@ class RouterCollection
     }
 
     /**
-     * Insted of using magic we define each method function
+     * Insted of using magic we define each method function.
      *
      * @param  string $pattern
      * @param  array  $param
@@ -224,13 +224,13 @@ class RouterCollection
     {
         $this->call('options', $pattern, $param[0], $param[1], $param);
     }
-    
-     /**
-     * Instead of using magic we define each method function
-     *
-     * @param  string $pattern
-     * @param  array  $param
-     */
+
+    /**
+    * Instead of using magic we define each method function.
+    *
+    * @param  string $pattern
+    * @param  array  $param
+    */
     public function head(string $pattern, array $param)
     {
         return $this->call('head', $pattern, $param[0], $param[1]);
