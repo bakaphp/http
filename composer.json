@@ -10,14 +10,16 @@
         "php": ">=7.0",
         "ext-phalcon": ">=3.0.0",
         "vlucas/phpdotenv": "^2.0",
-        "phalcon/incubator": ">=3.0.0"
+        "phalcon/incubator": ">=3.0.0",
+        "baka/database": "^0.1"
     },
     "require-dev": {
         "codeception/codeception": "2.4",
         "codeception/verify": "*",
         "vlucas/phpdotenv": "^2.0",
         "phalcon/incubator": "~3.3",
-        "dmkit/phalcon-jwt-auth": "dev-master"
+        "dmkit/phalcon-jwt-auth": "dev-master",
+        "baka/database": "^0.1"
     },
     "autoload": {
         "psr-4": {

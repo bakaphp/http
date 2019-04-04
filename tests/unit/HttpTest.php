@@ -1,6 +1,7 @@
 <?php
 
-use Baka\Http\Transformers\QueryParser;
+use Baka\Http\Converter\RequestUriToSql;
+use Test\Model\Leads;
 
 class HttpTest extends PhalconUnitTestCase
 {
@@ -21,8 +22,10 @@ class HttpTest extends PhalconUnitTestCase
         $params['page'] = '2';
         $params['sort'] = 'id_pct|desc';
 
-        $parse = new QueryParser($params);
-        $request = $parse->request();
+        $requstToSql = new RequestUriToSql($params, new Leads());
+        $request = $requstToSql->convert();
+
+        print_r($request);die();
 
         //confirm the keys we are expecting from the parser
         //@todo look for ways to validate the SQL directly with a local database
