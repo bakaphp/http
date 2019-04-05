@@ -80,6 +80,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
         ':' => '=',
         '>' => '>=',
         '<' => '<=',
+        '~' => '!=',
     ];
 
     /**
@@ -188,7 +189,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
 
                     // Make sure the model exists.
                     if (!class_exists($modelName)) {
-                        throw new \Exception('Related model does not exist.');
+                        throw new Exception('Related model does not exist.');
                     }
 
                     // Instance the model so we have access to the getSource() function.
@@ -573,7 +574,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
             $modelName = $modelNamespace . '\\' . $modelName;
 
             if (!class_exists($modelName)) {
-                throw new \Exception('Related model does not exist.');
+                throw new Exception('Related model does not exist.');
             }
 
             $parseRelationParameters[$modelName] = $this->parseSearchParameters($query)['mapped'];
@@ -600,6 +601,8 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
 
         // Now we have an array of "key:value" strings.
         $splitFields = explode(',', $unparsed);
+        $sqlFilersOperators = implode('|', array_keys($this->operators));
+
         $mapped = [];
         $search = [];
 
@@ -609,7 +612,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
             $fieldChain = explode(';', $fieldChain);
 
             foreach ($fieldChain as $field) {
-                $splitField = preg_split('#(:|>|<)#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
+                $splitField = preg_split('#(' . $sqlFilersOperators . ')#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
 
                 if (count($splitField) > 3) {
                     $splitField[2] = implode('', array_splice($splitField, 2));
@@ -671,7 +674,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
             $action = 'in';
             $fieldsToRelate = explode('::', $splitFields[0]);
         } else {
-            throw new \Exception('Error Processing Subquery', 1);
+            throw new Exception('Error Processing Subquery', 1);
         }
 
         $subquery = [
