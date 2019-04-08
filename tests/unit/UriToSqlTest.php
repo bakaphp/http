@@ -207,9 +207,7 @@ class UriToSqlTest extends PhalconUnitTestCase
 
         $this->assertEquals(1, count($results->toArray()));
 
-        /**
-         * @todo check if the limit as to be thte total amount of the table or from the specific query
-         */
+        //@todo check if the limit as to be thte total amount of the table or from the specific query
         $this->assertEquals(3, $count);
     }
 
