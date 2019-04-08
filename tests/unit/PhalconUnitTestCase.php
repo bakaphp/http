@@ -38,10 +38,10 @@ abstract class PhalconUnitTestCase extends PhalconTestCase
         $this->_config = new \Phalcon\Config([
             'database' => [
                 'adapter' => 'Mysql',
-                'host' => getenv('DATABASE_HOST'),
-                'username' => getenv('DATABASE_USER'),
-                'password' => getenv('DATABASE_PASS'),
-                'dbname' => getenv('DATABASE_NAME'),
+                'host' => getenv('DATA_API_MYSQL_HOST'),
+                'username' => getenv('DATA_API_MYSQL_USER'),
+                'password' => getenv('DATA_API_MYSQL_PASS'),
+                'dbname' => getenv('DATA_API_MYSQL_NAME'),
             ],
             'memcache' => [
                 'host' => getenv('MEMCACHE_HOST'),

@@ -311,8 +311,8 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
             foreach ($this->normalSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
                     foreach ($searchFieldValues as $csKey => $chainSearch) {
-                        $sql .= !$csKey ? ' (' : '';
-                        $sql .= $this->prepareNormalSql($chainSearch, $classname, 'OR', $fKey);
+                        $sql .= !$csKey ? ' OR  (' : '';
+                        $sql .= $this->prepareNormalSql($chainSearch, $classname, ($csKey ? 'OR' : ''), $fKey);
                         $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
                     }
                 } else {
@@ -588,7 +588,17 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
      * Unparsed, they will look like this:
      *    (name:Benjamin Framklin,location:Philadelphia)
      * Parsed:
-     *     array('name'=>'Benjamin Franklin', 'location'=>'Philadelphia').
+     *    [
+     *      [
+     *          'id_delete',
+     *          ':',
+     *          0
+     *      ],[
+     *          'id',
+     *          '>',
+     *           0
+     *      ]
+     *     ].
      *
      * @param  string $unparsed Unparsed search string
      * @return array            An array of fieldname=>value search parameters
@@ -863,6 +873,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
         $columns = explode(',', $columns);
 
         foreach ($columns as &$column) {
+            $column = preg_replace('/[^a-zA-_Z]/', '', $column);
             if (strpos($column, '.') === false) {
                 $column = "{$this->model->getSource()}.{$column}";
             } else {
