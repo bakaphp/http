@@ -79,7 +79,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
     /**
      * @var array
      */
-    private $operators = [
+    protected $operators = [
         ':' => '=',
         '>' => '>=',
         '<' => '<=',
@@ -89,12 +89,12 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
     /**
      * @var array
      */
-    private $bindParamsKeys = [];
+    protected $bindParamsKeys = [];
 
     /**
      * @var array
      */
-    private $bindParamsValues = [];
+    protected $bindParamsValues = [];
 
     /**
      * Pass the request.
@@ -357,7 +357,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
      *
      * @return string
      */
-    private function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    protected function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
     {
         $sql = '';
         $textFields = $this->getTextFields($classname);
@@ -425,7 +425,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
      *
      * @return string
      */
-    private function prepareRelatedSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    protected function prepareRelatedSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
     {
         $sql = '';
         $textFields = $this->getTextFields($classname);
@@ -493,7 +493,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
      *
      * @return string
      */
-    private function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey): string
+    protected function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey): string
     {
         $sql = '';
         list($searchField, $operator, $searchValue) = $searchCriteria;
@@ -790,7 +790,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
      * @param  string $table
      * @return array
      */
-    private function getTextFields($table): array
+    protected function getTextFields($table): array
     {
         $columnsData = $this->model->getReadConnection()->describeColumns($table);
         $textFields = [];
