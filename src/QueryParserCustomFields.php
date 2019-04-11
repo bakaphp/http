@@ -257,10 +257,17 @@ class QueryParserCustomFields extends QueryParser
 
                 $relatedKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
                 $relation = $this->model->getModelsManager()->getRelationsBetween(get_class($this->model), get_class($modelObject));
-                $relationKey = (isset($relation) && count($relation)) ? $relation[0]->getFields() : $relatedKey;
+
+                $relationKey = $primaryKey;
+                $referenceKey = $primaryKey;
+                
+                if (isset($relation) && $relation && count($relation)) {
+                    $relationKey =  $relation[0]->getFields();
+                    $referenceKey =  $relation[0]->getReferencedFields();
+                }
 
                 $sql .= " INNER JOIN {$model} ON {$model}.{$relatedKey} = (";
-                $sql .= "SELECT {$model}.{$relatedKey} FROM {$model} WHERE {$model}.{$relatedKey} = {$classname}.{$relationKey}";
+                $sql .= "SELECT {$model}.{$relatedKey} FROM {$model} WHERE {$model}.{$referenceKey} = {$classname}.{$relationKey}";
 
                 foreach ($searchFields as $fKey => $searchFieldValues) {
                     if (is_array(current($searchFieldValues))) {
