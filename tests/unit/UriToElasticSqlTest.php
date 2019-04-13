@@ -14,8 +14,9 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
      */
     public function testSimpleQuery()
     {
+        return ;
         //$params['q'] = ('is_delete:0');
-        $params['cq'] = ('branches.is_deleted:0;subscriptions.plan.id~3');
+        $params['cq'] = ('branches.dfadfadf.is_deleted:0;subscriptions.plan.id~3');
         $params['limit'] = '10';
         $params['page'] = '1';
         $params['sort'] = 'id|desc';
@@ -24,8 +25,6 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
         $requestToSql = new RequestUriToElasticSearch($params, $leads);
         $request = $requestToSql->convert();
 
-        print_r($request);
-        die();
         $results = (new SimpleRecords(null, $leads, $leads->getReadConnection()->query($request['sql'], $request['bind'])));
         $count = $leads->getReadConnection()->query($request['countSql'], $request['bind'])->fetch(\PDO::FETCH_OBJ)->total;
 

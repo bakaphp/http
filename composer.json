@@ -17,7 +17,7 @@
 
     },
     "require-dev": {
-        "codeception/codeception": "2.4",
+        "codeception/codeception": "^2.4",
         "codeception/verify": "*",
         "vlucas/phpdotenv": "^2.0",
         "phalcon/incubator": "~3.3",

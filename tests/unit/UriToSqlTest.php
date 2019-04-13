@@ -21,7 +21,8 @@ class UriToSqlTest extends PhalconUnitTestCase
         $leads = new Leads();
         $requestToSql = new RequestUriToSql($params, $leads);
         $request = $requestToSql->convert();
-
+        //print_r('3');
+        throw new Exception('3');
         $results = (new SimpleRecords(null, $leads, $leads->getReadConnection()->query($request['sql'], $request['bind'])));
         $count = $leads->getReadConnection()->query($request['countSql'], $request['bind'])->fetch(\PDO::FETCH_OBJ)->total;
 
@@ -207,7 +208,7 @@ class UriToSqlTest extends PhalconUnitTestCase
 
         $this->assertEquals(1, count($results->toArray()));
 
-        //@todo check if the limit as to be thte total amount of the table or from the specific query   
+        //@todo check if the limit as to be thte total amount of the table or from the specific query
         $this->assertEquals(3, $count);
     }
 
