@@ -86,7 +86,7 @@ class Ls extends AbstractMigration
             ])
             ->addColumn('updated_at', 'datetime', [
                 'null' => true,
-                'default' => 'NULL',
+                // 'default' => 'NULL',
                 'after' => 'created_at',
             ])
             ->addColumn('is_deleted', 'integer', [

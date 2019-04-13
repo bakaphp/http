@@ -207,17 +207,127 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
         // create custom query sql
         if (!empty($this->customSearchFields)) {
+            // print_r($this->customSearchFields);die();
+            // We have to pre-process the fields in order to have them bundled together.
+            $customSearchFields = [];
+
             foreach ($this->customSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
                     foreach ($searchFieldValues as $csKey => $chainSearch) {
-                        $sql .= !$csKey ? ' AND  (' : '';
-                        $sql .= $this->prepareNestedSql($chainSearch, $classname, ($csKey ? 'OR' : ''), $fKey);
-                        $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
+                        $searchTable = explode('.', $chainSearch[0])[0];
+                        $customSearchFields[$fKey][$searchTable][] = $chainSearch;
                     }
                 } else {
-                    $sql .= $this->prepareNestedSql($searchFieldValues, $classname, 'AND', $fKey);
+                    $searchTable = explode('.', $searchFieldValues[0])[0];
+                    $customSearchFields[$searchTable][] = $searchFieldValues;
                 }
             }
+
+            // print_r($customSearchFields);die();
+
+            $prepareNestedSql = function (array $searchCriteria, string $classname, string $andOr, string $fKey): string {
+                $sql = '';
+                $textFields = $this->getTextFields($classname);
+                list($searchField, $operator, $searchValues) = $searchCriteria;
+                $operator = $this->operators[$operator];
+
+                if (trim($searchValues) !== '') {
+                    if ($searchValues == '%%') {
+                        $sql .= ' ' . $andOr . ' (' . $searchField . ' IS NULL';
+                        $sql .= ' OR ' . $searchField . ' = ""';
+
+                        if ($this->model->$searchField === 0) {
+                            $sql .= ' OR ' . $searchField . ' = 0';
+                        }
+
+                        $sql .= ')';
+                    } elseif ($searchValues == '$$') {
+                        $sql .= ' ' . $andOr . ' (' . $searchField . ' IS NOT NULL';
+                        $sql .= ' OR ' . $searchField . ' != ""';
+
+                        if ($this->model->$searchField === 0) {
+                            $sql .= ' OR ' . $searchField . ' ) != 0';
+                        }
+
+                        $sql .= ')';
+                    } else {
+                        if (strpos($searchValues, '|')) {
+                            $searchValues = explode('|', $searchValues);
+                        } else {
+                            $searchValues = [$searchValues];
+                        }
+
+                        $sqlArray = [];
+                        foreach ($searchValues as $vKey => $value) {
+                            if ((in_array($searchField, $textFields)
+                                && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value))
+                                || $value == '%%'
+                            ) {
+                                $operator = 'LIKE';
+                            }
+
+                            if (!$vKey) {
+                                $sql .= ' ' . $andOr . ' (' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                            } else {
+                                $sql .= ' OR ' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                            }
+
+                            $this->bindParamsKeys[] = 'f' . $searchField . $fKey . $vKey;
+                            $this->bindParamsValues[] = $value;
+                        }
+
+                        $sql .= ')';
+                    }
+                }
+
+                return $sql;
+            };
+
+            // With the stuff processed we now proceed to assemble the query
+
+            foreach ($customSearchFields as $fKey => $searchFieldValues) {
+                // If the key is an integer, this means the fields have to be OR'd inside the nesting
+                if (is_int($fKey)) {
+                    $nestedSql = ' AND (';
+                    foreach ($searchFieldValues as $csKey => $chainSearch) {
+                        if (count($chainSearch) > 1) {
+                            $nestedSql .= ' nested("' . $csKey . '",';
+                            foreach ($chainSearch as $cKey => $chain) {
+                                $nestedSql .= $prepareNestedSql($chain, $classname, ($cKey ? 'OR' : ''), $csKey . $cKey);
+                            }
+                            $nestedSql .= ') ';
+                        } else {
+                            $nestedSql .= ' OR nested("' . $csKey . '",';
+                            $nestedSql .= $prepareNestedSql($chainSearch[0], $classname, '', $csKey);
+                            $nestedSql .= ') ';
+                        }
+                    }
+                    $sql .= $nestedSql . ') ';
+                } else {
+                    $nestedSql = ' AND nested("' . $fKey . '",';
+                    foreach ($searchFieldValues as $csKey => $chainSearch) {
+                        $nestedSql .= $prepareNestedSql($chainSearch, $classname, ($csKey ? 'AND' : ''), $fKey);
+                    }
+                    $nestedSql .= ') ';
+                    $sql .= $nestedSql;
+                }
+            }
+
+            // ==================================================
+            // ==================================================
+            // ==================================================
+
+            // foreach ($this->customSearchFields as $fKey => $searchFieldValues) {
+            //     if (is_array(current($searchFieldValues))) {
+            //         foreach ($searchFieldValues as $csKey => $chainSearch) {
+            //             $sql .= !$csKey ? ' AND  (' : '';
+            //             $sql .= $this->prepareNestedSql($chainSearch, $classname, ($csKey ? 'OR' : ''), $fKey);
+            //             $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
+            //         }
+            //     } else {
+            //         $sql .= $this->prepareNestedSql($searchFieldValues, $classname, 'AND', $fKey);
+            //     }
+            // }
         }
 
         // Replace initial `AND ` or `OR ` to avoid SQL errors.
@@ -321,7 +431,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
      *
      * @return string
      */
-    protected function prepareNestedSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    protected function prepareNestedSql(array $searchCriteria, string $classname, string $andOr, string $fKey): string
     {
         $sql = '';
         $textFields = $this->getTextFields($classname);

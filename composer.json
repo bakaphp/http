@@ -12,6 +12,7 @@
         "vlucas/phpdotenv": "^2.0",
         "phalcon/incubator": ">=3.0.0",
         "baka/database": "^0.1",
+        "baka/phalcon-elasticsearch": "^1.0",
         "robmorgan/phinx": "^0.10",
         "odan/phinx-migrations-generator": "dev-master"
 
@@ -22,6 +23,7 @@
         "vlucas/phpdotenv": "^2.0",
         "phalcon/incubator": "~3.3",
         "dmkit/phalcon-jwt-auth": "dev-master",
+        "baka/phalcon-elasticsearch": "^1.0",
         "baka/database": "^0.1",
         "odan/phinx-migrations-generator": "dev-master"
 
