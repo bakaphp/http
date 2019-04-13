@@ -318,6 +318,7 @@ class UriToSqlTest extends PhalconUnitTestCase
         $count = $leads->getReadConnection()->query($request['countSql'], $request['bind'])->fetch(\PDO::FETCH_OBJ)->total;
 
         $this->assertTrue(empty($results->toArray()));
+
         $this->assertEquals(0, $count);
     }
 }
