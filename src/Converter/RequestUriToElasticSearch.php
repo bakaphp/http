@@ -211,7 +211,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
             // We have to pre-process the fields in order to have them bundled together.
             $customSearchFields = [];
 
-            foreach($this->customSearchFields as $fKey => $searchFieldValues) {
+            foreach ($this->customSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
                     foreach ($searchFieldValues as $csKey => $chainSearch) {
                         $searchTable = explode('.', $chainSearch[0])[0];
@@ -225,8 +225,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
             // print_r($customSearchFields);die();
 
-            $prepareNestedSql = function (array $searchCriteria, string $classname, string $andOr, string $fKey): string
-            {
+            $prepareNestedSql = function (array $searchCriteria, string $classname, string $andOr, string $fKey): string {
                 $sql = '';
                 $textFields = $this->getTextFields($classname);
                 list($searchField, $operator, $searchValues) = $searchCriteria;
@@ -286,14 +285,14 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
             // With the stuff processed we now proceed to assemble the query
 
-            foreach($customSearchFields as $fKey => $searchFieldValues) {
+            foreach ($customSearchFields as $fKey => $searchFieldValues) {
                 // If the key is an integer, this means the fields have to be OR'd inside the nesting
                 if (is_int($fKey)) {
                     $nestedSql = ' AND (';
                     foreach ($searchFieldValues as $csKey => $chainSearch) {
                         if (count($chainSearch) > 1) {
                             $nestedSql .= ' nested("' . $csKey . '",';
-                            foreach($chainSearch as $cKey => $chain) {
+                            foreach ($chainSearch as $cKey => $chain) {
                                 $nestedSql .= $prepareNestedSql($chain, $classname, ($cKey ? 'OR' : ''), $csKey . $cKey);
                             }
                             $nestedSql .= ') ';
