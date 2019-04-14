@@ -47,6 +47,13 @@ abstract class PhalconUnitTestCase extends PhalconTestCase
                 'host' => getenv('MEMCACHE_HOST'),
                 'port' => getenv('MEMCACHE_PORT'),
             ],
+            'namespace' => [
+                'models' => 'Test\Models',
+                'elasticIndex' => 'Test\Indices',
+            ],
+            'elasticSearch' => [
+                'hosts' => [getenv('ELASTIC_HOST')], //change to pass array
+            ],
         ]);
 
         $config = $this->_config;

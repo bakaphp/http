@@ -12,10 +12,11 @@
         "vlucas/phpdotenv": "^2.0",
         "phalcon/incubator": ">=3.0.0",
         "baka/database": "^0.1",
-        "baka/phalcon-elasticsearch": "^1.0",
+        "baka/elasticsearch": "^1.0",
+        "elasticsearch/elasticsearch": "^6.1",
+        "guzzlehttp/guzzle": "^6.3",
         "robmorgan/phinx": "^0.10",
         "odan/phinx-migrations-generator": "dev-master"
-
     },
     "require-dev": {
         "codeception/codeception": "^2.4",
@@ -23,7 +24,7 @@
         "vlucas/phpdotenv": "^2.0",
         "phalcon/incubator": "~3.3",
         "dmkit/phalcon-jwt-auth": "dev-master",
-        "baka/phalcon-elasticsearch": "^1.0",
+        "elasticsearch/elasticsearch": "^6.1",
         "baka/database": "^0.1",
         "odan/phinx-migrations-generator": "dev-master"
 

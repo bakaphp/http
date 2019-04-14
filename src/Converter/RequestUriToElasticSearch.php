@@ -29,11 +29,11 @@ class RequestUriToElasticSearch extends RequestUriToSql
      * @var array
      */
     protected $operators = [
-        ':' => 'LIKE',
+        ':' => '=',
         '>' => '>=',
         '<' => '<=',
-        '~' => '<>',
-        '¬' => '=',
+        '¬' => '<>',
+        '~' => 'LIKE',
     ];
 
     /**
@@ -76,7 +76,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
         if (array_key_exists('columns', $this->request)) {
             $this->parseColumns($this->request['columns']);
         } else {
-            $this->columns = "{$this->model->getSource()}.*";
+            $this->columns = '*';
         }
 
         // Check the limit the user is asking for.
@@ -195,7 +195,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
             foreach ($this->normalSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
                     foreach ($searchFieldValues as $csKey => $chainSearch) {
-                        $sql .= !$csKey ? ' OR  (' : '';
+                        $sql .= !$csKey ? ' AND  (' : '';
                         $sql .= $this->prepareNormalSql($chainSearch, $classname, ($csKey ? 'OR' : ''), $fKey);
                         $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
                     }
@@ -272,8 +272,8 @@ class RequestUriToElasticSearch extends RequestUriToSql
                                 $sql .= ' OR ' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
                             }
 
-                            $this->bindParamsKeys[] = 'f' . $searchField . $fKey . $vKey;
-                            $this->bindParamsValues[] = $value;
+                            $this->bindParamsKeys[] = ':f' . $searchField . $fKey . $vKey;
+                            $this->bindParamsValues[] = "'{$value}'";
                         }
 
                         $sql .= ')';
@@ -289,6 +289,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
                 // If the key is an integer, this means the fields have to be OR'd inside the nesting
                 if (is_int($fKey)) {
                     $nestedSql = ' AND (';
+                    $first = true;
                     foreach ($searchFieldValues as $csKey => $chainSearch) {
                         if (count($chainSearch) > 1) {
                             $nestedSql .= ' nested("' . $csKey . '",';
@@ -297,10 +298,11 @@ class RequestUriToElasticSearch extends RequestUriToSql
                             }
                             $nestedSql .= ') ';
                         } else {
-                            $nestedSql .= ' OR nested("' . $csKey . '",';
+                            $nestedSql .= !$first ?  ' OR nested("' . $csKey . '",' : ' nested("' . $csKey . '",';
                             $nestedSql .= $prepareNestedSql($chainSearch[0], $classname, '', $csKey);
                             $nestedSql .= ') ';
                         }
+                        $first = false;
                     }
                     $sql .= $nestedSql . ') ';
                 } else {
@@ -347,9 +349,9 @@ class RequestUriToElasticSearch extends RequestUriToSql
         $bindParams = array_combine($this->bindParamsKeys, $this->bindParamsValues);
 
         return [
-            'sql' => $resultsSql,
-            'countSql' => $countSql,
-            'bind' => $bindParams,
+            'sql' => strtr($resultsSql, $bindParams),
+            'countSql' => strtr($countSql, $bindParams),
+            'bind' => null,
         ];
     }
 
@@ -372,20 +374,20 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
         if (trim($searchValues) !== '') {
             if ($searchValues == '%%') {
-                $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' IS NULL';
-                $sql .= ' OR ' . $classname . '.' . $searchField . ' = ""';
+                $sql .= ' ' . $andOr . ' (' . $searchField . ' IS NULL';
+                $sql .= ' OR ' . $searchField . ' = ""';
 
                 if ($this->model->$searchField === 0) {
-                    $sql .= ' OR ' . $classname . '.' . $searchField . ' = 0';
+                    $sql .= ' OR ' . $searchField . ' = 0';
                 }
 
                 $sql .= ')';
             } elseif ($searchValues == '$$') {
-                $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' IS NOT NULL';
-                $sql .= ' OR ' . $classname . '.' . $searchField . ' != ""';
+                $sql .= ' ' . $andOr . ' (' . $searchField . ' IS NOT NULL';
+                $sql .= ' OR ' . $searchField . ' != ""';
 
                 if ($this->model->$searchField === 0) {
-                    $sql .= ' OR ' . $classname . '.' . $searchField . ' != 0';
+                    $sql .= ' OR ' . $searchField . ' != 0';
                 }
 
                 $sql .= ')';
@@ -405,13 +407,13 @@ class RequestUriToElasticSearch extends RequestUriToSql
                     }
 
                     if (!$vKey) {
-                        $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                        $sql .= ' ' . $andOr . ' (' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
                     } else {
-                        $sql .= ' OR ' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                        $sql .= ' OR ' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
                     }
 
-                    $this->bindParamsKeys[] = 'f' . $searchField . $fKey . $vKey;
-                    $this->bindParamsValues[] = $value;
+                    $this->bindParamsKeys[] = ':f' . $searchField . $fKey . $vKey;
+                    $this->bindParamsValues[] = "'{$value}'";
                 }
 
                 $sql .= ')';
@@ -479,7 +481,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
                         $sql .= ' OR ' . $nested . '' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
                     }
 
-                    $this->bindParamsKeys[] = 'f' . $searchField . $fKey . $vKey;
+                    $this->bindParamsKeys[] = ':f' . $searchField . $fKey . $vKey;
                     $this->bindParamsValues[] = $value;
                 }
 
@@ -499,5 +501,30 @@ class RequestUriToElasticSearch extends RequestUriToSql
     {
         $this->customSearchFields = array_key_exists('cparams', $unparsed) ? $this->parseSearchParameters($unparsed['cparams'])['mapped'] : [];
         $this->normalSearchFields = array_key_exists('params', $unparsed) ? $this->parseSearchParameters($unparsed['params'])['mapped'] : [];
+    }
+
+    /**
+     * Parse the requested columns to be returned.
+     *
+     * @param string $columns
+     *
+     * @return void
+     */
+    protected function parseColumns(string $columns): void
+    {
+        // Split the columns string into individual columns
+        $columns = explode(',', $columns);
+
+        foreach ($columns as &$column) {
+            $column = preg_replace('/[^a-zA-_Z]/', '', $column);
+            if (strpos($column, '.') === false) {
+                $column = "{$column}";
+            } else {
+                $as = str_replace('.', '_', $column);
+                $column = "{$column} {$as}";
+            }
+        }
+
+        $this->columns = implode(', ', $columns);
     }
 }

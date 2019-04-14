@@ -176,7 +176,7 @@ class UriToSqlTest extends PhalconUnitTestCase
         foreach ($results as $result) {
             $this->assertTrue($result->id > 0);
         }
-
+        
         $this->assertEquals(3, count($results->toArray()));
         $this->assertEquals(3, $count);
     }
