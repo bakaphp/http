@@ -99,6 +99,7 @@ class CrudExtendedController extends BaseController
                 'limit' => $limit,
                 'page' => $this->request->getQuery('page', 'int', 1),
                 'total_pages' => ceil($count / $limit),
+                'total_rows' => $count
             ];
         }
 
