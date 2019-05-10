@@ -19,7 +19,8 @@ $loader->registerNamespaces(
         'Baka\Http' => ROOT_DIR . 'src',
         'Test\Model' => ROOT_DIR . 'tests\_support\Model',
         'Test\Indices' => ROOT_DIR . 'tests\_support\Indices',
-        'Baka\Elasticsearch' => ROOT_DIR . '..\phalcon-elasticsearch\src\\'
+        'Baka\Elasticsearch' => ROOT_DIR . '..\phalcon-elasticsearch\src\\',
+        'Baka\Database' => ROOT_DIR . '..\database\src\\'
     ]
 );
 

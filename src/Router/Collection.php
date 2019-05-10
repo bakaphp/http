@@ -1,10 +1,10 @@
 <?php
 
-namespace Baka\Http\Router;
+namespace Baka\Http;
 
-use \Exception;
-use \Phalcon\Mvc\Micro;
-use \Phalcon\Mvc\Micro\Collection as MicroCollection;
+use Exception;
+use Phalcon\Mvc\Micro;
+use Phalcon\Mvc\Micro\Collection as MicroCollection;
 
 /**
  * Router collection for Micro Phalcon API, insted of having to do.
@@ -32,7 +32,7 @@ use \Phalcon\Mvc\Micro\Collection as MicroCollection;
  *
  *  $router->mount();
  */
-class Collection
+class RouterCollection
 {
     private $application;
     private $prefix = null;
@@ -133,7 +133,8 @@ class Collection
             //only add if we want to ignore this url
             if (!$options['options']['jwt']) {
                 self::$hasJwtOptionsSetup = true;
-                self::$jwt[] = $this->prefix . $route['pattern'] . ':' . strtoupper($route['method']);
+                //we group them by method and hash the pattern to make it a faster lookup
+                self::$jwt[strtoupper($route['method'])][md5($this->prefix . $route['pattern'])] = $this->prefix . $route['pattern'];
             }
         }
     }

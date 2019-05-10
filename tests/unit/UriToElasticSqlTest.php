@@ -39,7 +39,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
 
         $params = [];
         //$params['q'] = ('is_deleted:0');
-        //$params['cq'] = ('company.name~mc');
+        //$params['cq'] = ('company.name:mc%');
         //$params['cq'] = ('eventsversions.events_types_id:1;participantsprograms.programs_id:2,custom_fields.sexo:f,companiesoffices.districts_id:1;companiesoffices.countries_id:2,eventsversionsparticipants.is_deleted:0|1,eventsversionsparticipants.eventsversionsdates.event_date>2019-04-01,eventsversionsparticipants.eventsversionsdates.event_date<2019-04-14');
         $params['limit'] = '10';
         $params['page'] = '1';
@@ -72,7 +72,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
         $params = [];
         $params['columns'] = '(id, users_id, firstname, lastname, is_deleted)';
         //$params['q'] = ('is_deleted:0');
-        //$params['cq'] = ('company.name~mc');
+        //$params['cq'] = ('company.name:mc%');
         //$params['cq'] = ('eventsversions.events_types_id:1;participantsprograms.programs_id:2,custom_fields.sexo:f,companiesoffices.districts_id:1;companiesoffices.countries_id:2,eventsversionsparticipants.is_deleted:0|1,eventsversionsparticipants.eventsversionsdates.event_date>2019-04-01,eventsversionsparticipants.eventsversionsdates.event_date<2019-04-14');
         $params['limit'] = '10';
         $params['page'] = '1';
@@ -107,7 +107,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
 
         $params = [];
         $params['q'] = ('is_deleted:0');
-        //$params['cq'] = ('company.name~mc');
+        //$params['cq'] = ('company.name:mc%');
         //$params['cq'] = ('eventsversions.events_types_id:1;participantsprograms.programs_id:2,custom_fields.sexo:f,companiesoffices.districts_id:1;companiesoffices.countries_id:2,eventsversionsparticipants.is_deleted:0|1,eventsversionsparticipants.eventsversionsdates.event_date>2019-04-01,eventsversionsparticipants.eventsversionsdates.event_date<2019-04-14');
         $params['limit'] = '10';
         $params['page'] = '1';
@@ -138,8 +138,8 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
         //create the index first
 
         $params = [];
-        $params['q'] = ('is_deleted:0,firstname~max');
-        //$params['cq'] = ('company.name~mc');
+        $params['q'] = ('is_deleted:0,firstname:max%');
+        //$params['cq'] = ('company.name:mc%');
         //$params['cq'] = ('eventsversions.events_types_id:1;participantsprograms.programs_id:2,custom_fields.sexo:f,companiesoffices.districts_id:1;companiesoffices.countries_id:2,eventsversionsparticipants.is_deleted:0|1,eventsversionsparticipants.eventsversionsdates.event_date>2019-04-01,eventsversionsparticipants.eventsversionsdates.event_date<2019-04-14');
         $params['limit'] = '10';
         $params['page'] = '1';
@@ -161,7 +161,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
     }
 
     /**
-     * Test normal with Or
+     * Test normal with Or.
      *
      * @return boolean
      */
@@ -170,8 +170,8 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
         //create the index first
 
         $params = [];
-        $params['q'] = ('is_deleted:0;firstname~max');
-        //$params['cq'] = ('company.name~mc');
+        $params['q'] = ('is_deleted:0;firstname:max%');
+        //$params['cq'] = ('company.name:mc%');
         //$params['cq'] = ('eventsversions.events_types_id:1;participantsprograms.programs_id:2,custom_fields.sexo:f,companiesoffices.districts_id:1;companiesoffices.countries_id:2,eventsversionsparticipants.is_deleted:0|1,eventsversionsparticipants.eventsversionsdates.event_date>2019-04-01,eventsversionsparticipants.eventsversionsdates.event_date<2019-04-14');
         $params['limit'] = '10';
         $params['page'] = '1';
@@ -193,7 +193,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
     }
 
     /**
-     * Test and and Or conditions
+     * Test and and Or conditions.
      *
      * @return boolean
      */
@@ -202,8 +202,8 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
         //create the index first
 
         $params = [];
-        $params['q'] = ('is_deleted:0,firstname~max;companies_id>0');
-        //$params['cq'] = ('company.name~mc');
+        $params['q'] = ('is_deleted:0,firstname:max%;companies_id>0');
+        //$params['cq'] = ('company.name:mc%');
         //$params['cq'] = ('eventsversions.events_types_id:1;participantsprograms.programs_id:2,custom_fields.sexo:f,companiesoffices.districts_id:1;companiesoffices.countries_id:2,eventsversionsparticipants.is_deleted:0|1,eventsversionsparticipants.eventsversionsdates.event_date>2019-04-01,eventsversionsparticipants.eventsversionsdates.event_date<2019-04-14');
         $params['limit'] = '10';
         $params['page'] = '1';
@@ -225,7 +225,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
     }
 
     /**
-     * Test limit
+     * Test limit.
      *
      * @return void
      */
@@ -234,8 +234,8 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
         //create the index first
 
         $params = [];
-        $params['q'] = ('is_deleted:0,firstname~max;companies_id>0');
-        //$params['cq'] = ('company.name~mc');
+        $params['q'] = ('is_deleted:0,firstname:max%;companies_id>0');
+        //$params['cq'] = ('company.name:mc%');
         //$params['cq'] = ('eventsversions.events_types_id:1;participantsprograms.programs_id:2,custom_fields.sexo:f,companiesoffices.districts_id:1;companiesoffices.countries_id:2,eventsversionsparticipants.is_deleted:0|1,eventsversionsparticipants.eventsversionsdates.event_date>2019-04-01,eventsversionsparticipants.eventsversionsdates.event_date<2019-04-14');
         $params['limit'] = '2';
         $params['page'] = '1';
@@ -257,7 +257,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
     }
 
     /**
-     * Test nested
+     * Test nested.
      *
      * @return void
      */
@@ -267,7 +267,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
 
         $params = [];
         $params['q'] = ('is_deleted:0,companies_id>0');
-        $params['cq'] = ('company.name~mc;company.id>0');
+        $params['cq'] = ('company.name:mc%;company.id>0');
 
         $params['limit'] = '2';
         $params['page'] = '1';
@@ -289,23 +289,21 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
     }
 
     /**
-     * Test nested 2 dimesional
+     * Test nested 2 dimesional.
      *
      * @return void
      */
     public function testQueryWithNestedConditionTwoDimensional()
     {
-
     }
 
     /**
-     * Test nested 3 dimesional
+     * Test nested 3 dimesional.
      *
      * @return void
      */
     public function testQueryWithNestedConditionThreeDimensional()
     {
-        
     }
 
     /**
@@ -319,7 +317,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
 
         $params = [];
         $params['q'] = ('is_deleted:0,companies_id>0');
-        $params['cq'] = ('company.name~mc,company.id>0;company.branch_id:1');
+        $params['cq'] = ('company.name:mc%,company.id>0;company.branch_id:1');
 
         $params['limit'] = '2';
         $params['page'] = '1';
@@ -350,7 +348,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
         //create the index first
         $params = [];
         $params['q'] = ('is_deleted:0,companies_id>0');
-        $params['cq'] = ('company.name~mc,company.id>0;company.branch_id:1');
+        $params['cq'] = ('company.name:mc%,company.id>0;company.branch_id:1');
         $params['columns'] = '(id)';
         $params['limit'] = '2';
         $params['page'] = '1';
@@ -383,7 +381,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
         //create the index first
         $params = [];
         $params['q'] = ('is_deleted:0,companies_id>0');
-        $params['cq'] = ('company.name~mc,company.id>0;company.branch_id:1');
+        $params['cq'] = ('company.name:mc,company.id>0;company.branch_id:1');
         $params['columns'] = '(id)';
         $params['limit'] = '2';
         $params['page'] = '1';
@@ -395,6 +393,7 @@ class UriToElasticSqlTest extends PhalconUnitTestCase
 
         $request = $requestToSql->convert();
         $client = new Client('http://' . $this->_config->elasticSearch['hosts'][0]);
+
         $results = $client->findBySql($request['sql']);
 
         $this->assertEquals(0, count($results));

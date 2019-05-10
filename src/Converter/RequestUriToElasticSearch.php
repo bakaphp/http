@@ -32,8 +32,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
         ':' => '=',
         '>' => '>=',
         '<' => '<=',
-        '¬' => '<>',
-        '~' => 'LIKE',
+        '~' => '!=',
     ];
 
     /**
@@ -259,8 +258,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
                         $sqlArray = [];
                         foreach ($searchValues as $vKey => $value) {
-                            if ((in_array($searchField, $textFields)
-                                && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value))
+                            if ((preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value))
                                 || $value == '%%'
                             ) {
                                 $operator = 'LIKE';
@@ -298,7 +296,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
                             }
                             $nestedSql .= ') ';
                         } else {
-                            $nestedSql .= !$first ?  ' OR nested("' . $csKey . '",' : ' nested("' . $csKey . '",';
+                            $nestedSql .= !$first ? ' OR nested("' . $csKey . '",' : ' nested("' . $csKey . '",';
                             $nestedSql .= $prepareNestedSql($chainSearch[0], $classname, '', $csKey);
                             $nestedSql .= ') ';
                         }
@@ -399,8 +397,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
                 }
 
                 foreach ($searchValues as $vKey => $value) {
-                    if ((in_array($searchField, $textFields)
-                        && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value))
+                    if (preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value)
                         || $value == '%%'
                     ) {
                         $operator = 'LIKE';
@@ -468,8 +465,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
                 }
 
                 foreach ($searchValues as $vKey => $value) {
-                    if ((in_array($searchField, $textFields)
-                        && preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value))
+                    if (preg_match('#^%[^%]+%|%[^%]+|[^%]+%$#i', $value)
                         || $value == '%%'
                     ) {
                         $operator = 'LIKE';
