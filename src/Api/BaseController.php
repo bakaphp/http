@@ -10,6 +10,8 @@ use Phalcon\Mvc\ModelInterface;
 use ArgumentCountError;
 use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
 use PDO;
+use Exception;
+use Throwable;
 
 /**
  * Default REST API Base Controller.
@@ -213,6 +215,107 @@ class BaseController extends Controller
         }
 
         return $this->processOutput($results);
+    }
+
+    /**
+     * Get the record by its primary key.
+     *
+     * @param mixed $id
+     *
+     * @throws Exception
+     * @return Response
+     */
+    public function getById($id): Response
+    {
+        //find the info
+        $record = $this->model::getByIdOrFail($id);
+
+        //get the results and append its relationships
+        $result = $this->appendRelationshipsToResult($this->request, $record);
+
+        return $this->response($this->processOutput($result));
+    }
+
+    /**
+     * Create new record.
+     *
+     * @return Response
+     */
+    public function create(): Response
+    {
+        //process the input
+        $result = $this->processCreate($this->request);
+
+        return $this->response($this->processOutput($result));
+    }
+
+    /**
+     * Process the create request and trecurd the boject.
+     *
+     * @return ModelInterface
+     * @throws Exception
+     */
+    protected function processCreate(Request $request): ModelInterface
+    {
+        //process the input
+        $request = $this->processInput($request->getPostData());
+
+        $this->model->saveOrFail($request, $this->createFields);
+
+        return $this->model;
+    }
+
+    /**
+     * Update a record.
+     *
+     * @param mixed $id
+     * @return Response
+     */
+    public function edit($id): Response
+    {
+        $record = $this->model::getByIdOrFail($id);
+
+        //process the input
+        $result = $this->processEdit($this->request, $record);
+
+        return $this->response($this->processOutput($result));
+    }
+
+    /**
+     * Process the update request and return the object.
+     *
+     * @param Request $request
+     * @param ModelInterface $record
+     * @throws Exception
+     * @return ModelInterface
+     */
+    protected function processEdit(Request $request, ModelInterface $record): ModelInterface
+    {
+        //process the input
+        $request = $this->processInput($request->getPutData());
+
+        $record->updateOrFail($request, $this->updateFields);
+
+        return $record;
+    }
+
+    /**
+     * Delete a Record.
+     *
+     * @throws Exception
+     * @return Response
+     */
+    public function delete($id): Response
+    {
+        $record = $this->model::getByIdOrFail($id);
+
+        if ($this->softDelete == 1) {
+            $record->softDelete();
+        } else {
+            $record->delete();
+        }
+
+        return $this->response(['Delete Successfully']);
     }
 
     /**
