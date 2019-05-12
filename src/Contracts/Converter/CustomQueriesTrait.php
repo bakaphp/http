@@ -31,9 +31,11 @@ trait CustomQueriesTrait
     * @param string $query
     * @return void
     */
-    public function setCustomColumns(string $query) : void
+    public function setCustomColumns(?string $query) : void
     {
-        $this->customColumns = ' ,' . $query;
+        if (is_null($query)) {
+            $this->customColumns = ' ,' . $query;
+        }
     }
 
     /**
@@ -43,9 +45,11 @@ trait CustomQueriesTrait
      * @param string $query
      * @return void
      */
-    public function setCustomTableJoins(string $query) : void
+    public function setCustomTableJoins(?string $query) : void
     {
-        $this->customTableJoins = ' ' . $query;
+        if (is_null($query)) {
+            $this->customTableJoins = ' ' . $query;
+        }
     }
 
     /**
@@ -54,8 +58,10 @@ trait CustomQueriesTrait
      * @param string $query
      * @return void
      */
-    public function setCustomConditions(string $query) : void
+    public function setCustomConditions(?string $query) : void
     {
-        $this->customConditions = ' ' . $query;
+        if (is_null($query)) {
+            $this->customConditions = ' ' . $query;
+        }
     }
 }

@@ -176,7 +176,7 @@ class UriToSqlTest extends PhalconUnitTestCase
         foreach ($results as $result) {
             $this->assertTrue($result->id > 0);
         }
-        
+
         $this->assertEquals(3, count($results->toArray()));
         $this->assertEquals(3, $count);
     }
@@ -320,5 +320,33 @@ class UriToSqlTest extends PhalconUnitTestCase
         $this->assertTrue(empty($results->toArray()));
 
         $this->assertEquals(0, $count);
+    }
+
+    /**
+     * Test query with append params.
+     *
+     * @return void
+     */
+    public function testQueryWithAppendParams()
+    {
+        //create the index first
+        $params = [];
+        $params['q'] = ('companies_id>0');
+        $params['columns'] = '(id)';
+        $params['limit'] = '2';
+        $params['page'] = '1';
+        $params['sort'] = 'id|desc';
+
+        $leads = new Leads();
+        $requestToSql = new RequestUriToSql($params, $leads);
+        $requestToSql->appendParams([
+            ['is_deleted', ':', '0']
+        ]);
+
+        $request = $requestToSql->convert();
+        $results = (new SimpleRecords(null, $leads, $leads->getReadConnection()->query($request['sql'], $request['bind'])));
+        $count = $leads->getReadConnection()->query($request['countSql'], $request['bind'])->fetch(\PDO::FETCH_OBJ)->total;
+
+        $this->assertTrue(count($results->toArray()) > 0);
     }
 }
