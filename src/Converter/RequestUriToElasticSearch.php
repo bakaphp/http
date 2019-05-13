@@ -523,4 +523,28 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
         $this->columns = implode(', ', $columns);
     }
+
+    /**
+     * Based on the given relaitonship , add the relation array to the Resultset
+     *
+     * @param  string $relationships
+     * @param  Model $results
+     * @return array
+     */
+    public static function parseRelationShips(string $relationships, &$results) : array
+    {
+        $relationships = explode(',', $relationships);
+        $newResults = [];
+        if (!($results instanceof Model)) {
+            throw new Exception(_('Result needs to be a Baka Model'));
+        }
+        $newResults = $results->toFullArray();
+        foreach ($relationships as $relationship) {
+            if ($results->$relationship) {
+                $newResults[$relationship] = $results->$relationship;
+            }
+        }
+        unset($results);
+        return $newResults;
+    }
 }

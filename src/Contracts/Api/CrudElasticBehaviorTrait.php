@@ -5,12 +5,23 @@ namespace Baka\Http\Contracts\Api;
 use Phalcon\Http\Request;
 use Phalcon\Mvc\ModelInterface;
 use Exception;
+use Baka\Http\Converter\RequestUriToElasticSearch;
+use Baka\Elasticsearch\Client;
 
 trait CrudElasticBehaviorTrait
 {
-    use CrudBehaviorTrait {
-        CrudBehaviorTrait::processCreate as processCreateParent;
-        CrudBehaviorTrait::processEdit as processEditParent;
+    use CrudCustomFieldsBehaviorTrait;
+
+    /**
+     * We dont need you in elastic
+     *
+     * @param Request $request
+     * @param array|object $results
+     * @return array
+     */
+    protected function appendRelationshipsToResult(Request $request, $results)
+    {
+        return $results;
     }
 
     /**
@@ -35,36 +46,24 @@ trait CrudElasticBehaviorTrait
     }
 
     /**
-     * Process the create request and trecurd the boject.
+     * Given a process request return the records.
      *
-     * @return ModelInterface
-     * @throws Exception
+     * @return void
      */
-    protected function processCreate(Request $request): ModelInterface
+    protected function getRecords(array $processedRequest): array
     {
-        $this->processCreateParent($request);
+        $required = ['sql', 'countSql', 'bind'];
 
-        //set the custom fields to create
-        $this->model->setCustomFields($request);
+        if (count(array_intersect_key(array_flip($required), $processedRequest)) != count($required)) {
+            throw new ArgumentCountError('Not a processed request missing any of the following params : SQL, CountSQL, Bind');
+        }
 
-        return $this->model;
-    }
+        $client = new Client('http://' . current($this->config->elasticSearch['hosts']));
+        $results = $client->findBySql($processedRequest['sql']);
 
-    /**
-     * Process the update request and return the object.
-     *
-     * @param Request $request
-     * @param ModelInterface $record
-     * @throws Exception
-     * @return ModelInterface
-     */
-    protected function processEdit(Request $request, ModelInterface $record): ModelInterface
-    {
-        $record = $this->processEditParent($request, $record);
-
-        //set the custom fields to update
-        $record->setCustomFields($request);
-
-        return $record;
+        return [
+            'results' => $results,
+            'total' => 0 //@todo fix this
+        ];
     }
 }

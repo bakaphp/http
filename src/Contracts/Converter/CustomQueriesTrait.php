@@ -33,7 +33,7 @@ trait CustomQueriesTrait
     */
     public function setCustomColumns(?string $query) : void
     {
-        if (is_null($query)) {
+        if (!is_null($query)) {
             $this->customColumns = ' ,' . $query;
         }
     }
@@ -47,7 +47,7 @@ trait CustomQueriesTrait
      */
     public function setCustomTableJoins(?string $query) : void
     {
-        if (is_null($query)) {
+        if (!is_null($query)) {
             $this->customTableJoins = ' ' . $query;
         }
     }
@@ -60,7 +60,7 @@ trait CustomQueriesTrait
      */
     public function setCustomConditions(?string $query) : void
     {
-        if (is_null($query)) {
+        if (!is_null($query)) {
             $this->customConditions = ' ' . $query;
         }
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Baka\Http;
+namespace Baka\Http\Router;
 
 use Exception;
 use Phalcon\Mvc\Micro;
@@ -32,7 +32,7 @@ use Phalcon\Mvc\Micro\Collection as MicroCollection;
  *
  *  $router->mount();
  */
-class RouterCollection
+class Collection
 {
     private $application;
     private $prefix = null;

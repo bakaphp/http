@@ -10,74 +10,9 @@ use ArgumentCountError;
 use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
 use PDO;
 use Exception;
-use Throwable;
 
 trait CrudBehaviorTrait
 {
-    /**
-     * Soft delete option, default 1.
-     *
-     * @var int
-     */
-    public $softDelete = 0;
-
-    /**
-     * fields we accept to create.
-     *
-     * @var array
-     */
-    protected $createFields = [];
-
-    /**
-     * fields we accept to update.
-     *
-     * @var array
-     */
-    protected $updateFields = [];
-
-    /**
-     * PhalconPHP Model.
-     *
-     * @var object
-     */
-    public $model;
-
-    /**
-     * @param array $normalSearchFields
-     */
-    protected $additionalSearchFields = [];
-
-    /**
-     * @param array $customSearchFields
-     */
-    protected $additionalCustomSearchFields = [];
-
-    /**
-     * @param array $relationSearchFields
-     */
-    protected $additionalRelationSearchFields = [];
-
-    /**
-     * Specify any customf columns.
-     *
-     * @var string
-     */
-    protected $customColumns = null;
-
-    /**
-     * Specify any custom join tables.
-     *
-     * @var string
-     */
-    protected $customTableJoins = null;
-
-    /**
-     * Specify any custom conditionals we need.
-     *
-     * @var string
-     */
-    protected $customConditions = null;
-
     /**
      * We need to find the response if you plan to use this trait
      *
@@ -116,7 +51,7 @@ trait CrudBehaviorTrait
      * @param array|object $results
      * @return array
      */
-    protected function appendRelationshipsToResult(Request $request, $results): array
+    protected function appendRelationshipsToResult(Request $request, $results)
     {
         // Relationships, but we have to change it to sparo full implementation
         if ($request->hasQuery('relationships')) {
