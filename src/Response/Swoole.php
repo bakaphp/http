@@ -19,7 +19,7 @@ class Swoole extends Response
     protected $response;
 
     /**
-     * Set the swoole response object
+     * Set the swoole response object.
      *
      * @param swoole_http_response $response
      * @return void
@@ -33,7 +33,7 @@ class Swoole extends Response
     }
 
     /**
-     * Send the response
+     * Send the response.
      *
      * @return PhResponse
      */

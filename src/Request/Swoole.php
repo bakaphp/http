@@ -19,10 +19,9 @@ use Phalcon\Text;
 use swoole_http_request;
 use Exception;
 use Phalcon\Di\FactoryDefault;
-use function Gewaer\Core\isJson;
 
 /**
- * Class SwooleRequest
+ * Class SwooleRequest.
  *
  * To use Swoole Server with Phalcon we need to overwrite the Phalcon Request Object to use swoole Respnose object
  * Since swoole is our server he is the one who get all our _GET , _FILES, _POST , _PUT request and we need to parse that info
@@ -63,7 +62,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     protected $swooleRequest;
 
     /**
-     * Init the object with Swoole reqeust
+     * Init the object with Swoole reqeust.
      *
      * @param swoole_http_request $request
      * @return void
@@ -92,7 +91,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Set global headers
+     * Set global headers.
      *
      * @param array $headers
      * @return void
@@ -107,7 +106,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Set global Servers
+     * Set global Servers.
      *
      * @param array $servers
      * @return void
@@ -121,7 +120,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Set Di
+     * Set Di.
      *
      * @param DiInterface $dependencyInjector
      * @return void
@@ -132,7 +131,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get Di
+     * Get Di.
      *
      * @return void
      */
@@ -142,7 +141,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Access to REQUEST
+     * Access to REQUEST.
      *
      * @param string $name
      * @param string $filters
@@ -158,7 +157,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Acces to Post
+     * Acces to Post.
      *
      * @param string $name
      * @param string $filters
@@ -174,7 +173,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Access to GET
+     * Access to GET.
      *
      * @param string $name
      * @param string $filters
@@ -190,7 +189,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get _SERVER
+     * Get _SERVER.
      *
      * @param string $name
      * @return string|null
@@ -206,7 +205,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get _PUT
+     * Get _PUT.
      *
      * @param string $name
      * @param string $filters
@@ -220,7 +219,10 @@ class Swoole implements RequestInterface, InjectionAwareInterface
         $put = $this->_putCache;
 
         if (empty($put)) {
-            if (!isJson($this->getRawBody())) {
+            json_decode($this->getRawBody());
+            //return (bool ) (json_last_error() == JSON_ERROR_NONE);
+            //confirm is a true json reponse
+            if ((json_last_error() == JSON_ERROR_NONE)) {
                 parse_str($this->getRawBody(), $put);
             } else {
                 $put = $this->getJsonRawBody(true);
@@ -232,7 +234,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Has
+     * Has.
      *
      * @param string $name
      * @return boolean
@@ -244,7 +246,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Has Post
+     * Has Post.
      *
      * @param string $name
      * @return boolean
@@ -255,7 +257,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Has Put
+     * Has Put.
      *
      * @param string $name
      * @return boolean
@@ -268,7 +270,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Has GET
+     * Has GET.
      *
      * @param string $name
      * @return boolean
@@ -279,7 +281,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Has SERVER
+     * Has SERVER.
      *
      * @param string $name
      * @return boolean
@@ -292,7 +294,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Has HEADER
+     * Has HEADER.
      *
      * @param string $name
      * @return boolean
@@ -309,7 +311,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get Header
+     * Get Header.
      *
      * @param string $name
      * @return string|void
@@ -330,7 +332,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get Schema
+     * Get Schema.
      *
      * @return string
      */
@@ -345,7 +347,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is ajax
+     * Is ajax.
      *
      * @return boolean
      */
@@ -355,7 +357,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * is Soap
+     * is Soap.
      *
      * @return boolean
      */
@@ -374,7 +376,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * is Soap
+     * is Soap.
      *
      * @return boolean
      */
@@ -384,7 +386,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * is HTTPS
+     * is HTTPS.
      *
      * @return boolean
      */
@@ -394,7 +396,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * is HTTPS
+     * is HTTPS.
      *
      * @return boolean
      */
@@ -404,7 +406,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * get RAW
+     * get RAW.
      *
      * @return string
      */
@@ -414,7 +416,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get json
+     * Get json.
      *
      * @param boolean $associative
      * @return void|string
@@ -430,7 +432,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get servers addres
+     * Get servers addres.
      *
      * @return string
      */
@@ -445,7 +447,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get server name
+     * Get server name.
      *
      * @return string
      */
@@ -460,7 +462,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get https hosts
+     * Get https hosts.
      *
      * @return string
      */
@@ -469,17 +471,17 @@ class Swoole implements RequestInterface, InjectionAwareInterface
         $strict = $this->_strictHostCheck;
 
         /**
-         * Get the server name from $_SERVER["HTTP_HOST"]
+         * Get the server name from $_SERVER["HTTP_HOST"].
          */
         $host = $this->getServer('HTTP_HOST');
         if (!$host) {
             /**
-             * Get the server name from $_SERVER["SERVER_NAME"]
+             * Get the server name from $_SERVER["SERVER_NAME"].
              */
             $host = $this->getServer('SERVER_NAME');
             if (!$host) {
                 /**
-                 * Get the server address from $_SERVER["SERVER_ADDR"]
+                 * Get the server address from $_SERVER["SERVER_ADDR"].
                  */
                 $host = $this->getServer('SERVER_ADDR');
             }
@@ -487,7 +489,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
 
         if ($host && $strict) {
             /**
-             * Cleanup. Force lowercase as per RFC 952/2181
+             * Cleanup. Force lowercase as per RFC 952/2181.
              */
             $host = strtolower(trim($host));
             if (strpos($host, ':') !== false) {
@@ -496,7 +498,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
 
             /**
              * Host may contain only the ASCII letters 'a' through 'z' (in a case-insensitive manner),
-             * the digits '0' through '9', and the hyphen ('-') as per RFC 952/2181
+             * the digits '0' through '9', and the hyphen ('-') as per RFC 952/2181.
              */
             if ('' !== preg_replace("/[a-z0-9-]+\.?/", '', $host)) {
                 throw new \UnexpectedValueException('Invalid host ' . $host);
@@ -507,7 +509,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Sets if the `Request::getHttpHost` method must be use strict validation of host name or not
+     * Sets if the `Request::getHttpHost` method must be use strict validation of host name or not.
      */
     public function setStrictHostCheck($flag = true)
     {
@@ -517,7 +519,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Checks if the `Request::getHttpHost` method will be use strict validation of host name or not
+     * Checks if the `Request::getHttpHost` method will be use strict validation of host name or not.
      */
     public function isStrictHostCheck()
     {
@@ -525,14 +527,14 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get port
+     * Get port.
      *
      * @return int
      */
     public function getPort()
     {
         /**
-         * Get the server name from $_SERVER["HTTP_HOST"]
+         * Get the server name from $_SERVER["HTTP_HOST"].
          */
         $host = $this->getServer('HTTP_HOST');
         if ($host) {
@@ -550,7 +552,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Gets HTTP URI which request has been made
+     * Gets HTTP URI which request has been made.
      */
     public function getURI()
     {
@@ -563,7 +565,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get client ip
+     * Get client ip.
      *
      * @param boolean $trustForwardedHeader
      * @return string|boolean
@@ -573,7 +575,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
         $address = null;
 
         /**
-         * Proxies uses this IP
+         * Proxies uses this IP.
          */
         if ($trustForwardedHeader) {
             $address = $this->getServer('X_FORWARDED_FOR');
@@ -589,7 +591,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
         if (is_string($address)) {
             if (strpos($address, ',') !== false) {
                 /**
-                 * The client address has multiples parts, only return the first part
+                 * The client address has multiples parts, only return the first part.
                  */
                 return explode(',', $address)[0];
             }
@@ -600,7 +602,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get method
+     * Get method.
      *
      * @return string
      */
@@ -631,7 +633,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get user agent
+     * Get user agent.
      *
      * @return string|void
      */
@@ -645,7 +647,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is method
+     * Is method.
      *
      * @param string $methods
      * @param boolean $strict
@@ -680,7 +682,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is post
+     * Is post.
      *
      * @return boolean
      */
@@ -690,7 +692,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is GET
+     * Is GET.
      *
      * @return boolean
      */
@@ -700,7 +702,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is Put
+     * Is Put.
      *
      * @return boolean
      */
@@ -710,7 +712,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is patch
+     * Is patch.
      *
      * @return boolean
      */
@@ -720,7 +722,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is head
+     * Is head.
      *
      * @return boolean
      */
@@ -730,7 +732,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is dealete
+     * Is dealete.
      *
      * @return boolean
      */
@@ -740,7 +742,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is Options
+     * Is Options.
      *
      * @return boolean
      */
@@ -750,7 +752,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is Purge
+     * Is Purge.
      *
      * @return boolean
      */
@@ -760,7 +762,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is trace
+     * Is trace.
      *
      * @return boolean
      */
@@ -770,7 +772,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Is connect
+     * Is connect.
      *
      * @return boolean
      */
@@ -812,7 +814,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Recursively counts file in an array of files
+     * Recursively counts file in an array of files.
      */
     protected function hasFileHelper($data, $onlySuccessful)
     {
@@ -836,7 +838,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the uploaded files
+     * Get the uploaded files.
      *
      * @param boolean $onlySuccessful
      * @return array
@@ -884,7 +886,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the files
+     * Get the files.
      *
      * @param string $key
      * @return string|void
@@ -907,7 +909,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Smooth out $_FILES to have plain array with all files uploaded
+     * Smooth out $_FILES to have plain array with all files uploaded.
      */
     protected function smoothFiles($names, $types, $tmp_names, $sizes, $errors, $prefix)
     {
@@ -947,7 +949,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the servers
+     * Get the servers.
      *
      * @return array
      */
@@ -957,7 +959,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the headers
+     * Get the headers.
      *
      * @return array
      */
@@ -993,7 +995,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the httpd reference
+     * Get the httpd reference.
      *
      * @return string|void
      */
@@ -1008,7 +1010,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Process a request header and return the one with best quality
+     * Process a request header and return the one with best quality.
      *
      * @return string
      */
@@ -1036,7 +1038,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the content
+     * Get the content.
      *
      * @return array
      */
@@ -1046,7 +1048,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the content
+     * Get the content.
      *
      * @return string
      */
@@ -1056,7 +1058,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the content
+     * Get the content.
      *
      * @return array
      */
@@ -1066,7 +1068,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the content
+     * Get the content.
      *
      * @return string
      */
@@ -1076,7 +1078,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the content
+     * Get the content.
      *
      * @return array
      */
@@ -1086,7 +1088,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the content
+     * Get the content.
      *
      * @return string
      */
@@ -1096,7 +1098,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the basic httpd auth
+     * Get the basic httpd auth.
      *
      * @return array|void
      */
@@ -1113,7 +1115,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Get the server digest
+     * Get the server digest.
      *
      * @return array
      */
@@ -1137,7 +1139,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Checks if a method is a valid HTTP method
+     * Checks if a method is a valid HTTP method.
      */
     public function isValidHttpMethod($method)
     {
@@ -1197,7 +1199,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Gets content type which request has been made
+     * Gets content type which request has been made.
      */
     public function getContentType()
     {
@@ -1210,7 +1212,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Process a request header and return an array of values with their qualities
+     * Process a request header and return an array of values with their qualities.
      *
      * @return array
      */
@@ -1289,7 +1291,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Resolve the PHP_AUTH_USER
+     * Resolve the PHP_AUTH_USER.
      *
      * @param array $headers
      * @return void
@@ -1325,7 +1327,7 @@ class Swoole implements RequestInterface, InjectionAwareInterface
     }
 
     /**
-     * Reseolve PHP auth digest
+     * Reseolve PHP auth digest.
      *
      * @param array $headers
      * @return void

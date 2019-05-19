@@ -83,7 +83,7 @@ class BaseController extends Controller
      * @param mixed $content
      * @param integer $statusCode
      * @param string $statusMessage
-     * 
+     *
      * @return Response
      *
      */

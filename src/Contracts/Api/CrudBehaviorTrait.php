@@ -14,7 +14,7 @@ use Exception;
 trait CrudBehaviorTrait
 {
     /**
-     * We need to find the response if you plan to use this trait
+     * We need to find the response if you plan to use this trait.
      *
      * @param mixed $content
      * @param integer $statusCode

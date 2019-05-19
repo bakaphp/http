@@ -46,7 +46,7 @@ trait CrudCustomFieldsBehaviorTrait
         $this->processCreateParent($request);
 
         //set the custom fields to create
-        $this->model->setCustomFields($request);
+        $this->model->setCustomFields($request->getPostData());
 
         return $this->model;
     }
@@ -64,7 +64,7 @@ trait CrudCustomFieldsBehaviorTrait
         $record = $this->processEditParent($request, $record);
 
         //set the custom fields to update
-        $record->setCustomFields($request);
+        $record->setCustomFields($request->getPutData());
 
         return $record;
     }
