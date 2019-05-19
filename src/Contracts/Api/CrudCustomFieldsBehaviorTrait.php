@@ -32,7 +32,7 @@ trait CrudCustomFieldsBehaviorTrait
             $results = is_object($results) ? RequestUriToElasticSearch::parseRelationShips($relationships, $results) : $results;
         }
 
-        return $results;
+        return is_object($results) ? $results->toFullArray() : $results;
     }
 
     /**
