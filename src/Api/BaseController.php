@@ -11,8 +11,6 @@ use Baka\Http\Contracts\Api\CrudBehaviorTrait;
  */
 class BaseController extends Controller
 {
-    use CrudBehaviorTrait;
-
     /**
      * Soft delete option, default 1.
      *
