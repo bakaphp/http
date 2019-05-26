@@ -15,4 +15,3 @@ coveralls-upload.json
 phpunit.xml
 vendor
 tests/_output/*
-tests/_output/*

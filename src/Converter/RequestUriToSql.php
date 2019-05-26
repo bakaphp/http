@@ -1,14 +1,18 @@
 <?php
 
-namespace Baka\Http;
+namespace Baka\Http\Converter;
 
 use Baka\Database\CustomFields\CustomFields;
 use Baka\Database\CustomFields\Modules;
 use Baka\Database\Model;
+use Baka\Http\Contracts\Converter\ConverterInterface;
 use Exception;
+use Phalcon\Di;
+use Phalcon\Mvc\Model\ResultsetInterface;
+use Baka\Http\Contracts\Converter\CustomQueriesTrait;
 
 /**
- * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret
+ * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret.
  *
  * Supports queries with the following paramters:
  *   Searching:
@@ -20,8 +24,10 @@ use Exception;
  *   Partials:
  *     offset=20
  */
-class QueryParserCustomFields extends QueryParser
+class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterface
 {
+    use CustomQueriesTrait;
+
     /**
      * @var array
      */
@@ -73,24 +79,25 @@ class QueryParserCustomFields extends QueryParser
     /**
      * @var array
      */
-    private $operators = [
+    protected $operators = [
         ':' => '=',
         '>' => '>=',
         '<' => '<=',
+        '~' => '!=',
     ];
 
     /**
      * @var array
      */
-    private $bindParamsKeys = [];
+    protected $bindParamsKeys = [];
 
     /**
      * @var array
      */
-    private $bindParamsValues = [];
+    protected $bindParamsValues = [];
 
     /**
-     * Pass the request
+     * Pass the request.
      */
     public function __construct(array $request, Model $model)
     {
@@ -106,7 +113,7 @@ class QueryParserCustomFields extends QueryParser
      * @param  array $allowedFields Allowed fields array for search and partials
      * @return boolean              Always true if no exception is thrown
      */
-    public function request(): array
+    public function convert(): array
     {
         $params = [
             'subquery' => '',
@@ -185,7 +192,7 @@ class QueryParserCustomFields extends QueryParser
 
                     // Make sure the model exists.
                     if (!class_exists($modelName)) {
-                        throw new \Exception('Related model does not exist.');
+                        throw new Exception('Related model does not exist.');
                     }
 
                     // Instance the model so we have access to the getSource() function.
@@ -227,7 +234,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * gien the request array , get the custom query to find the results
+     * gien the request array , get the custom query to find the results.
      *
      * @param  array  $params
      * @return string
@@ -256,9 +263,11 @@ class QueryParserCustomFields extends QueryParser
                 $model = $modelObject->getSource();
 
                 $relatedKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
+                $relation = $this->model->getModelsManager()->getRelationsBetween(get_class($this->model), get_class($modelObject));
+                $relationKey = (isset($relation) && count($relation)) ? $relation[0]->getFields() : $relatedKey;
 
                 $sql .= " INNER JOIN {$model} ON {$model}.{$relatedKey} = (";
-                $sql .= "SELECT {$model}.{$relatedKey} FROM {$model} WHERE {$model}.{$primaryKey} = {$classname}.{$primaryKey}";
+                $sql .= "SELECT {$model}.{$relatedKey} FROM {$model} WHERE {$model}.{$relatedKey} = {$classname}.{$relationKey}";
 
                 foreach ($searchFields as $fKey => $searchFieldValues) {
                     if (is_array(current($searchFieldValues))) {
@@ -307,8 +316,8 @@ class QueryParserCustomFields extends QueryParser
             foreach ($this->normalSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
                     foreach ($searchFieldValues as $csKey => $chainSearch) {
-                        $sql .= !$csKey ? ' (' : '';
-                        $sql .= $this->prepareNormalSql($chainSearch, $classname, 'OR', $fKey);
+                        $sql .= !$csKey ? ' OR  (' : '';
+                        $sql .= $this->prepareNormalSql($chainSearch, $classname, ($csKey ? 'OR' : ''), $fKey);
                         $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
                     }
                 } else {
@@ -328,8 +337,8 @@ class QueryParserCustomFields extends QueryParser
         $sql = preg_replace('# WHERE$#', '', $sql);
 
         //sql string
-        $countSql = 'SELECT COUNT(*) total FROM ' . $classname . $sql;
-        $resultsSql = "SELECT {$this->columns} FROM {$classname}{$sql}";
+        $countSql = 'SELECT COUNT(*) total FROM ' . $classname . $this->customTableJoins . $sql . $this->customConditions;
+        $resultsSql = "SELECT {$this->columns} {$this->customColumns} FROM {$classname} {$this->customTableJoins} {$sql} {$this->customConditions}";
         //bind params
         $bindParams = array_combine($this->bindParamsKeys, $this->bindParamsValues);
 
@@ -350,7 +359,7 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return string
      */
-    private function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    protected function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
     {
         $sql = '';
         $textFields = $this->getTextFields($classname);
@@ -418,7 +427,7 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return string
      */
-    private function prepareRelatedSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    protected function prepareRelatedSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
     {
         $sql = '';
         $textFields = $this->getTextFields($classname);
@@ -486,7 +495,7 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return string
      */
-    private function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey): string
+    protected function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey): string
     {
         $sql = '';
         list($searchField, $operator, $searchValue) = $searchCriteria;
@@ -542,7 +551,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Preparse the parameters to be used in the search
+     * Preparse the parameters to be used in the search.
      *
      * @return void
      */
@@ -554,7 +563,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Parse relationship query parameters
+     * Parse relationship query parameters.
      *
      * @param  array $unparsed
      *
@@ -570,7 +579,7 @@ class QueryParserCustomFields extends QueryParser
             $modelName = $modelNamespace . '\\' . $modelName;
 
             if (!class_exists($modelName)) {
-                throw new \Exception('Related model does not exist.');
+                throw new Exception('Related model does not exist.');
             }
 
             $parseRelationParameters[$modelName] = $this->parseSearchParameters($query)['mapped'];
@@ -584,7 +593,17 @@ class QueryParserCustomFields extends QueryParser
      * Unparsed, they will look like this:
      *    (name:Benjamin Framklin,location:Philadelphia)
      * Parsed:
-     *     array('name'=>'Benjamin Franklin', 'location'=>'Philadelphia')
+     *    [
+     *      [
+     *          'id_delete',
+     *          ':',
+     *          0
+     *      ],[
+     *          'id',
+     *          '>',
+     *           0
+     *      ]
+     *     ].
      *
      * @param  string $unparsed Unparsed search string
      * @return array            An array of fieldname=>value search parameters
@@ -597,6 +616,8 @@ class QueryParserCustomFields extends QueryParser
 
         // Now we have an array of "key:value" strings.
         $splitFields = explode(',', $unparsed);
+        $sqlFilersOperators = implode('|', array_keys($this->operators));
+
         $mapped = [];
         $search = [];
 
@@ -606,7 +627,7 @@ class QueryParserCustomFields extends QueryParser
             $fieldChain = explode(';', $fieldChain);
 
             foreach ($fieldChain as $field) {
-                $splitField = preg_split('#(:|>|<)#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
+                $splitField = preg_split('#(' . $sqlFilersOperators . ')#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
 
                 if (count($splitField) > 3) {
                     $splitField[2] = implode('', array_splice($splitField, 2));
@@ -629,13 +650,149 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
+     * Parses out the subquery parameters from a request.
+     *
+     * in = ::, not in = !::
+     *
+     * Unparsed, they will look like this:
+     *    internet_special(id::vehicles_id)
+     * Parsed:
+     *     Array('action' => in, 'firstField' => id, 'secondField' => vehicles_id,'model' => MyDealer\Models\InternetSpecial)
+     *
+     * *
+     * @param  string $unparsed Unparsed search string
+     * @return array            An array of fieldname=>value search parameters
+     */
+    protected function parseSubquery(string $unparsed): array
+    {
+        // Strip parens that come with the request string
+        $tableName = explode('(', $unparsed, 2);
+        //print_r($tableName);die();
+        $tableName = strtolower($tableName[0]);
+
+        $modelName = str_replace('_', ' ', $tableName);
+        $modelName = str_replace(' ', '', ucwords($modelName));
+
+        //Add the namespace to the model name
+        $model = $this->config['namespace']['models'] . '\\' . $modelName;
+
+        $unparsed = str_replace($tableName, '', $unparsed);
+        $unparsed = trim($unparsed, '()');
+
+        // Now we have an array of "key:value" strings.
+        $splitFields = explode(',', $unparsed);
+
+        if (strpos($splitFields[0], '!::') !== false) {
+            $action = 'not in';
+            $fieldsToRelate = explode('!::', $splitFields[0]);
+        } elseif (strpos($splitFields[0], '::') !== false) {
+            $action = 'in';
+            $fieldsToRelate = explode('::', $splitFields[0]);
+        } else {
+            throw new Exception('Error Processing Subquery', 1);
+        }
+
+        $subquery = [
+            'action' => $action,
+            'firstField' => $fieldsToRelate[0],
+            'secondField' => $fieldsToRelate[1],
+            'model' => $model,
+        ];
+
+        return $subquery;
+    }
+
+    /**
+     * Prepare conditions to search in record.
+     *
+     * @param  string $unparsed
+     * @return array
+     */
+    protected function prepareSearch(array $unparsed, bool $isSearch = false, $hasSubquery = false): array
+    {
+        $statement = [
+            'conditions' => '1 = 1',
+            'bind' => [],
+        ];
+
+        if ($isSearch) {
+            $mapped = $this->parseSearchParameters($unparsed['params']);
+            $conditions = '1 = 1';
+
+            $tmpMapped = $mapped;
+
+            foreach ($tmpMapped as $key => $value) {
+                if (strpos($value, '~') !== false) {
+                    unset($tmpMapped[$key]);
+                    $betweenMap[$key] = explode('~', $value);
+                }
+            }
+
+            $keys = array_keys($tmpMapped);
+            $values = array_values($tmpMapped);
+
+            $di = Di::getDefault();
+
+            foreach ($keys as $key => $field) {
+                if ($di->get('config')->database->adapter == 'Postgresql') {
+                    $conditions .= " AND CAST({$field} AS TEXT) LIKE ?{$key}";
+                } else {
+                    $conditions .= " AND {$field} LIKE ?{$key}";
+                }
+            }
+
+            if (isset($betweenMap)) {
+                foreach ($betweenMap as $key => $fields) {
+                    $binds = count($values);
+                    $conditions .= ' AND ' . $key . ' BETWEEN ?' . $binds . ' AND ?' . ($binds + 1);
+                    $values = array_merge($values, $fields);
+                }
+            }
+
+            if ($hasSubquery) {
+                $subquery = $this->parseSubquery($unparsed['subquery']);
+                $conditions .= ' AND ' . $subquery['firstField'] . ' ' . $subquery['action'] . ' (select ' . $subquery['secondField'] . ' FROM ' . $subquery['model'] . ')';
+            }
+
+            $statement = [
+                'conditions' => $conditions,
+                'bind' => $values,
+            ];
+        }
+
+        return $statement;
+    }
+
+    /**
+     * Parses out partial fields to return in the response.
+     * Unparsed:
+     *     (id,name,location)
+     * Parsed:
+     *     array('id', 'name', 'location').
+     *
+     * @param  string $unparsed Unparsed string of fields to return in partial response
+     * @return array            Array of fields to return in partial response
+     */
+    protected function parsePartialFields(string $unparsed): array
+    {
+        $fields = explode(',', trim($unparsed, '()'));
+
+        // Avoid returning array with empty value
+        if (count($fields) == 1 && current($fields) == '') {
+            return [];
+        }
+
+        return $fields;
+    }
+
+    /**
      * get the text field from this model database
-     * so we can do like search
+     * so we can do like search.
      *
      * @param  string $table
      * @return array
      */
-    private function getTextFields($table): array
+    protected function getTextFields($table): array
     {
         $columnsData = $this->model->getReadConnection()->describeColumns($table);
         $textFields = [];
@@ -653,7 +810,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append any defined additional parameters
+     * Append any defined additional parameters.
      *
      * @return void
      */
@@ -673,7 +830,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append additional search parameters
+     * Append additional search parameters.
      *
      * @param array $params
      *
@@ -685,7 +842,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append additional search parameters
+     * Append additional search parameters.
      *
      * @param array $params
      *
@@ -697,7 +854,7 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append additional search parameters
+     * Append additional search parameters.
      *
      * @param array $params
      *
@@ -721,6 +878,7 @@ class QueryParserCustomFields extends QueryParser
         $columns = explode(',', $columns);
 
         foreach ($columns as &$column) {
+            $column = preg_replace('/[^a-zA-_Z]/', '', $column);
             if (strpos($column, '.') === false) {
                 $column = "{$this->model->getSource()}.{$column}";
             } else {
@@ -763,26 +921,38 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Based on the given relaitonship , add the relation array to the Resultset
+     * Based on the given relaitonship , add the relation array to the Resultset.
      *
      * @param  string $relationships
-     * @param  Model $results
-     * @return array
+     * @param  [array|object] $results     by reference to clean the object
+     * @return mixed
      */
-    public static function parseRelationShips(string $relationships, &$results) : array
+    public static function parseRelationShips(string $relationships, &$results): array
     {
         $relationships = explode(',', $relationships);
 
         $newResults = [];
 
-        if (!($results instanceof Model)) {
-            throw new Exception(_('Result needs to be a Baka Model'));
-        }
-
-        $newResults = $results->toFullArray();
-        foreach ($relationships as $relationship) {
-            if ($results->$relationship) {
-                $newResults[$relationship] = $results->$relationship;
+        //if its a list
+        if ($results instanceof ResultsetInterface && count($results) >= 1) {
+            foreach ($results as $key => $result) {
+                //clean records conver to array
+                $newResults[$key] = $result->toFullArray();
+                foreach ($relationships as $relationship) {
+                    if ($results[$key]->$relationship) {
+                        $newResults[$key][$relationship] = $results[$key]->$relationship;
+                    }
+                }
+            }
+        } else {
+            //if its only 1 record
+            if ($results instanceof Model) {
+                $newResults = $results->toFullArray();
+                foreach ($relationships as $relationship) {
+                    if ($results->$relationship) {
+                        $newResults[$relationship] = $results->$relationship;
+                    }
+                }
             }
         }
 
