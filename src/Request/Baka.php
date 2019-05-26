@@ -17,7 +17,7 @@ class Baka extends PhalconRequest
     {
         $data = $this->getPost() ?: $this->getJsonRawBody(true);
 
-        return $data;
+        return $data ?: [];
     }
 
     /**
@@ -29,6 +29,6 @@ class Baka extends PhalconRequest
     {
         $data = $this->getPut() ?: $this->getJsonRawBody(true);
 
-        return $data;
+        return $data ?: [];
     }
 }
