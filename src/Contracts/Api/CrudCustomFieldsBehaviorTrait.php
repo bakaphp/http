@@ -28,10 +28,21 @@ trait CrudCustomFieldsBehaviorTrait
         // Relationships, but we have to change it to sparo full implementation
         if ($request->hasQuery('relationships')) {
             $relationships = $request->getQuery('relationships', 'string');
-
+    
             $results = is_object($results) ? RequestUriToElasticSearch::parseRelationShips($relationships, $results) : $results;
         }
 
+        return $results;
+    }
+
+    /**
+     * Process output
+     *
+     * @param mixed $results
+     * @return mixed
+     */
+    protected function processOutput($results)
+    {
         return is_object($results) ? $results->toFullArray() : $results;
     }
 
@@ -43,10 +54,10 @@ trait CrudCustomFieldsBehaviorTrait
      */
     protected function processCreate(Request $request): ModelInterface
     {
-        $this->processCreateParent($request);
-
         //set the custom fields to create
         $this->model->setCustomFields($request->getPostData());
+
+        $this->processCreateParent($request);
 
         return $this->model;
     }
@@ -61,10 +72,10 @@ trait CrudCustomFieldsBehaviorTrait
      */
     protected function processEdit(Request $request, ModelInterface $record): ModelInterface
     {
-        $record = $this->processEditParent($request, $record);
-
         //set the custom fields to update
         $record->setCustomFields($request->getPutData());
+
+        $record = $this->processEditParent($request, $record);
 
         return $record;
     }
