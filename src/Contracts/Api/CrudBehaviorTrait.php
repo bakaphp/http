@@ -169,7 +169,7 @@ trait CrudBehaviorTrait
     public function getById($id): Response
     {
         //find the info
-        $record = $this->model::getByIdOrFail($id);
+        $record = $this->model::findFirstOrFail($id);
 
         //get the results and append its relationships
         $result = $this->appendRelationshipsToResult($this->request, $record);
