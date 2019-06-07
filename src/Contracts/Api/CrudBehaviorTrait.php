@@ -87,6 +87,7 @@ trait CrudBehaviorTrait
         return $request;
     }
 
+    // TODO: Move it to its own class. 
     /**
      * Given a process request return the records.
      *
@@ -94,10 +95,16 @@ trait CrudBehaviorTrait
      */
     protected function getRecords(array $processedRequest): array
     {
+        // TODO: Create a const with these values
         $required = ['sql', 'countSql', 'bind'];
 
-        if (count(array_intersect_key(array_flip($required), $processedRequest)) != count($required)) {
-            throw new ArgumentCountError('Not a processed request missing any of the following params : SQL, CountSQL, Bind');
+        if ($diff = array_diff($required, array_keys($processedRequest))) {
+            throw new ArgumentCountError(
+                sprintf(
+                    'Request no processed. Missing any of the following params : %s.',
+                    implode(', ', $diff)
+                    )
+                );
         }
 
         $results = new SimpleRecords(
@@ -139,6 +146,7 @@ trait CrudBehaviorTrait
         //conver the request to sql
         $processedRequest = $this->processRequest($this->request);
         $records = $this->getRecords($processedRequest);
+
 
         //get the results and append its relationships
         $results = $this->appendRelationshipsToResult($this->request, $records['results']);
