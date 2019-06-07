@@ -101,7 +101,7 @@ trait CrudBehaviorTrait
         if ($diff = array_diff($required, array_keys($processedRequest))) {
             throw new ArgumentCountError(
                 sprintf(
-                    'Request no processed. Missing any of the following params : %s.',
+                    'Request no processed. Missing following params : %s.',
                     implode(', ', $diff)
                     )
                 );
