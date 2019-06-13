@@ -87,7 +87,8 @@ trait CrudBehaviorTrait
         return $request;
     }
 
-    // TODO: Move it to its own class. 
+    // TODO: Move it to its own class.
+
     /**
      * Given a process request return the records.
      *
@@ -147,7 +148,6 @@ trait CrudBehaviorTrait
         $processedRequest = $this->processRequest($this->request);
         $records = $this->getRecords($processedRequest);
 
-
         //get the results and append its relationships
         $results = $this->appendRelationshipsToResult($this->request, $records['results']);
 
@@ -177,7 +177,10 @@ trait CrudBehaviorTrait
     public function getById($id): Response
     {
         //find the info
-        $record = $this->model::findFirstOrFail($id);
+        $record = $this->model::findFirstOrFail([
+            'conditions' => $this->model->getPrimaryKey() . '= ?0',
+            'bind' => [$id]
+        ]);
 
         //get the results and append its relationships
         $result = $this->appendRelationshipsToResult($this->request, $record);
@@ -222,7 +225,10 @@ trait CrudBehaviorTrait
      */
     public function edit($id): Response
     {
-        $record = $this->model::getByIdOrFail($id);
+        $record = $this->model::findFirstOrFail([
+            'conditions' => $this->model->getPrimaryKey() . '= ?0',
+            'bind' => [$id]
+        ]);
 
         //process the input
         $result = $this->processEdit($this->request, $record);
@@ -256,7 +262,10 @@ trait CrudBehaviorTrait
      */
     public function delete($id): Response
     {
-        $record = $this->model::getByIdOrFail($id);
+        $record = $this->model::findFirstOrFail([
+            'conditions' => $this->model->getPrimaryKey() . '= ?0',
+            'bind' => [$id]
+        ]);
 
         if ($this->softDelete == 1) {
             $record->softDelete();
