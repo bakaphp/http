@@ -541,8 +541,8 @@ class RequestUriToElasticSearch extends RequestUriToSql
         $newResults = $results->toFullArray();
         foreach ($relationships as $relationship) {
             if ($results->$relationship) {
-                $relationship = 'get' . ucfirst($relationship);
-                $newResults[$relationship] = $results->$relationship();
+                $callRelationship = 'get' . ucfirst($relationship);
+                $newResults[$relationship] = $results->$callRelationship();
             }
         }
         unset($results);
