@@ -525,7 +525,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
     }
 
     /**
-     * Based on the given relaitonship , add the relation array to the Resultset
+     * Based on the given relaitonship , add the relation array to the Resultset.
      *
      * @param  string $relationships
      * @param  Model $results
@@ -541,7 +541,8 @@ class RequestUriToElasticSearch extends RequestUriToSql
         $newResults = $results->toFullArray();
         foreach ($relationships as $relationship) {
             if ($results->$relationship) {
-                $newResults[$relationship] = $results->$relationship;
+                $relationship = 'get' . ucfirst($relationship);
+                $newResults[$relationship] = $results->$relationship();
             }
         }
         unset($results);

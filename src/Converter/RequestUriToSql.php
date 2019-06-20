@@ -940,7 +940,8 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
                 $newResults[$key] = $result->toFullArray();
                 foreach ($relationships as $relationship) {
                     if ($results[$key]->$relationship) {
-                        $newResults[$key][$relationship] = $results[$key]->$relationship;
+                        $callRelationship = 'get' . ucfirst($relationship);
+                        $newResults[$key][$relationship] = $results[$key]->$callRelationship();
                     }
                 }
             }
@@ -950,7 +951,9 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
                 $newResults = $results->toFullArray();
                 foreach ($relationships as $relationship) {
                     if ($results->$relationship) {
-                        $newResults[$relationship] = $results->$relationship;
+                        $callRelationship = 'get' . ucfirst($relationship);
+
+                        $newResults[$relationship] = $results->$callRelationship();
                     }
                 }
             }
