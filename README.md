@@ -1,5 +1,9 @@
 # Baka HTTP
 
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bakaphp/http/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/bakaphp/http/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/bakaphp/http/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/bakaphp/http/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/bakaphp/http/badges/build.png?b=master)](https://scrutinizer-ci.com/g/bakaphp/http/build-status/master)
+
 PhalconPHP package to create fast RESTful API's providing a simple way to create fast CRUD's
 
 ## Table of Contents
