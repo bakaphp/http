@@ -2,9 +2,7 @@
 
 namespace Baka\Http\Contracts\Api;
 
-use Phalcon\Http\Request;
-use Phalcon\Mvc\ModelInterface;
-use Exception;
+use Phalcon\Http\RequestInterface;
 use Baka\Http\Converter\RequestUriToElasticSearch;
 use Baka\Elasticsearch\Client;
 
@@ -15,11 +13,11 @@ trait CrudElasticBehaviorTrait
     /**
      * We dont need you in elastic
      *
-     * @param Request $request
+     * @param RequestInterface $request
      * @param array|object $results
      * @return array
      */
-    protected function appendRelationshipsToResult(Request $request, $results)
+    protected function appendRelationshipsToResult(RequestInterface $request, $results)
     {
         return $results;
     }
@@ -27,10 +25,10 @@ trait CrudElasticBehaviorTrait
     /**
     * Given a request it will give you the SQL to process.
     *
-    * @param Request $request
+    * @param RequestInterface $request
     * @return string
     */
-    protected function processRequest(Request $request): array
+    protected function processRequest(RequestInterface $request): array
     {
         //parse the rquest
         $parse = new RequestUriToElasticSearch($request->getQuery(), $this->model);

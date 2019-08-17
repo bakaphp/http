@@ -2,7 +2,7 @@
 
 namespace Baka\Http\Contracts\Api;
 
-use Phalcon\Http\Request;
+use Phalcon\Http\RequestInterface;
 use Phalcon\Mvc\ModelInterface;
 use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
 use PDO;
@@ -19,11 +19,11 @@ trait CrudCustomFieldsBehaviorTrait
     /**
      * Given the results we append the relationships.
      *
-     * @param Request $request
+     * @param RequestInterface $request
      * @param array|object $results
      * @return array
      */
-    protected function appendRelationshipsToResult(Request $request, $results)
+    protected function appendRelationshipsToResult(RequestInterface $request, $results)
     {
         // Relationships, but we have to change it to sparo full implementation
         if ($request->hasQuery('relationships')) {
@@ -52,7 +52,7 @@ trait CrudCustomFieldsBehaviorTrait
      * @return ModelInterface
      * @throws Exception
      */
-    protected function processCreate(Request $request): ModelInterface
+    protected function processCreate(RequestInterface $request): ModelInterface
     {
         //set the custom fields to create
         $this->model->setCustomFields($request->getPostData());
@@ -65,12 +65,12 @@ trait CrudCustomFieldsBehaviorTrait
     /**
      * Process the update request and return the object.
      *
-     * @param Request $request
+     * @param RequestInterface $request
      * @param ModelInterface $record
      * @throws Exception
      * @return ModelInterface
      */
-    protected function processEdit(Request $request, ModelInterface $record): ModelInterface
+    protected function processEdit(RequestInterface $request, ModelInterface $record): ModelInterface
     {
         //set the custom fields to update
         $record->setCustomFields($request->getPutData());

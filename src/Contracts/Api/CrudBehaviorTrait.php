@@ -3,7 +3,7 @@
 namespace Baka\Http\Contracts\Api;
 
 use Phalcon\Http\Response;
-use Phalcon\Http\Request;
+use Phalcon\Http\RequestInterface;
 use Baka\Http\Converter\RequestUriToSql;
 use Phalcon\Mvc\ModelInterface;
 use ArgumentCountError;
@@ -26,10 +26,10 @@ trait CrudBehaviorTrait
     /**
     * Given a request it will give you the SQL to process.
     *
-    * @param Request $request
+    * @param RequestInterface $request
     * @return string
     */
-    protected function processRequest(Request $request): array
+    protected function processRequest(RequestInterface $request): array
     {
         //parse the rquest
         $parse = new RequestUriToSql($request->getQuery(), $this->model);
@@ -47,11 +47,11 @@ trait CrudBehaviorTrait
     /**
      * Given the results we append the relationships.
      *
-     * @param Request $request
+     * @param RequestInterface $request
      * @param array|object $results
      * @return array
      */
-    protected function appendRelationshipsToResult(Request $request, $results)
+    protected function appendRelationshipsToResult(RequestInterface $request, $results)
     {
         // Relationships, but we have to change it to sparo full implementation
         if ($request->hasQuery('relationships')) {
@@ -207,7 +207,7 @@ trait CrudBehaviorTrait
      * @return ModelInterface
      * @throws Exception
      */
-    protected function processCreate(Request $request): ModelInterface
+    protected function processCreate(RequestInterface $request): ModelInterface
     {
         //process the input
         $request = $this->processInput($request->getPostData());
@@ -239,12 +239,12 @@ trait CrudBehaviorTrait
     /**
      * Process the update request and return the object.
      *
-     * @param Request $request
+     * @param RequestInterface $request
      * @param ModelInterface $record
      * @throws Exception
      * @return ModelInterface
      */
-    protected function processEdit(Request $request, ModelInterface $record): ModelInterface
+    protected function processEdit(RequestInterface $request, ModelInterface $record): ModelInterface
     {
         //process the input
         $request = $this->processInput($request->getPutData());
