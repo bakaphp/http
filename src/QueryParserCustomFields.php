@@ -400,14 +400,19 @@ class QueryParserCustomFields extends QueryParser
                         $operator = 'LIKE';
                     }
 
-                    if (!$vKey) {
-                        $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                    if (in_array($value, ['!!', '~~'])) {
+                        $logicConector = !$vKey ? " " . $andOr .' (' : ' OR ';
+                        $sql .= $logicConector . $classname . '.' . $searchField . ' IS NULL';
                     } else {
-                        $sql .= ' OR ' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
-                    }
+                        if (!$vKey) {
+                            $sql .= ' ' . $andOr . ' (' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                        } else {
+                            $sql .= ' OR ' . $classname . '.' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                        }
 
-                    $this->bindParamsKeys[] = 'f' . $searchField . $fKey . $vKey;
-                    $this->bindParamsValues[] = $value;
+                        $this->bindParamsKeys[] = 'f' . $searchField . $fKey . $vKey;
+                        $this->bindParamsValues[] = $value;
+                    }
                 }
 
                 $sql .= ')';
