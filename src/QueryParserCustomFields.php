@@ -400,7 +400,7 @@ class QueryParserCustomFields extends QueryParser
                         $operator = 'LIKE';
                     }
 
-                    if (in_array($value, ['!!', '~~'])) {
+                    if ($value == 'null') {
                         $logicConector = !$vKey ? " " . $andOr .' (' : ' OR ';
                         $sql .= $logicConector . $classname . '.' . $searchField . ' IS NULL';
                     } else {
