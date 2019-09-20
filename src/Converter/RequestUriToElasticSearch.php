@@ -259,28 +259,12 @@ class RequestUriToElasticSearch extends RequestUriToSql
                         } */
 
             $this->parseNestedStructure($newCustomFieldsParsed, $sql, $classname);
-
-            // ==================================================
-            // ==================================================
-            // ==================================================
-
-            // foreach ($this->customSearchFields as $fKey => $searchFieldValues) {
-            //     if (is_array(current($searchFieldValues))) {
-            //         foreach ($searchFieldValues as $csKey => $chainSearch) {
-            //             $sql .= !$csKey ? ' AND  (' : '';
-            //             $sql .= $this->prepareNestedSql($chainSearch, $classname, ($csKey ? 'OR' : ''), $fKey);
-            //             $sql .= ($csKey == count($searchFieldValues) - 1) ? ') ' : '';
-            //         }
-            //     } else {
-            //         $sql .= $this->prepareNestedSql($searchFieldValues, $classname, 'AND', $fKey);
-            //     }
-            // }
         }
 
         // Replace initial `AND ` or `OR ` to avoid SQL errors.
         $sql = str_replace(
-            ['WHERE AND', 'WHERE OR', 'WHERE ( OR'],
-            ['WHERE', 'WHERE', 'WHERE ('],
+            ['WHERE AND', 'WHERE OR', 'WHERE ( OR', '",  AND', '", AND'],
+            ['WHERE', 'WHERE', 'WHERE (', '",', '",'],
             $sql
         );
 
@@ -369,13 +353,13 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
     /**
      * Parse nested structure to create its recursive tree
-     * nested(key , 
+     * nested(key ,
      *  attributes = value
      *  AND attributes = values
-     *  AND nested(key2, 
+     *  AND nested(key2,
      *          attributes = values
      *      )
-     * )
+     * ).
      *
      * @param array $newCustomFieldsParsed
      * @param string $sql
@@ -386,18 +370,17 @@ class RequestUriToElasticSearch extends RequestUriToSql
     {
         $csKey = 1;
         foreach ($newCustomFieldsParsed as $fKey => $nestedFields) {
-            
-            $nestedSqlAnd = substr($sql, -1) != ',' ? 'AND ' : null;
-            $nestedSql = $nestedSqlAnd.'nested("' . $fKey . '", ';
+            $nestedSql = ' AND nested("' . $fKey . '", ';
 
             foreach ($nestedFields as $nestedKey => $nestedValue) {
                 if ($nestedKey == 'plain') {
                     foreach ($nestedFields[$nestedKey] as $chainSearch) {
+                        $chainSearch[0] = $fKey . '.' . $chainSearch[0];
                         $nestedSql .= $this->prepareNestedSql($chainSearch, $classname, ($csKey ? 'AND' : ''), $fKey);
                     }
                 } else {
                     $newNestedArray = [
-                        $nestedKey => $nestedValue
+                        $fKey . '.' . $nestedKey => $nestedValue
                     ];
                     $this->parseNestedStructure($newNestedArray, $nestedSql, $classname);
                 }
