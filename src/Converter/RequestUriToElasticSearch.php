@@ -2,13 +2,8 @@
 
 namespace Baka\Http\Converter;
 
-use Baka\Database\CustomFields\CustomFields;
-use Baka\Database\CustomFields\Modules;
 use Baka\Database\Model;
 use Exception;
-use Phalcon\Di;
-use Phalcon\Mvc\Model\ResultsetInterface;
-use Baka\Http\Contracts\Converter\CustomQueriesTrait;
 
 /**
  * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret.
@@ -32,7 +27,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
         ':' => '=',
         '>' => '>=',
         '<' => '<=',
-        '~' => '!=',
+        '~' => '<>',
     ];
 
     /**
@@ -176,7 +171,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
     protected function prepareCustomSearch($hasSubquery = false): array
     {
         $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
-        $classReflection = (new \ReflectionClass($this->model));
+        //$classReflection = (new \ReflectionClass($this->model));
         $classname = $this->model->getSource();
 
         $primaryKey = null;
@@ -218,11 +213,19 @@ class RequestUriToElasticSearch extends RequestUriToSql
                     }
                 } else {
                     $searchTable = explode('.', $searchFieldValues[0])[0];
-                    $customSearchFields[$searchTable][] = $searchFieldValues;
+
+                    //we use strlen and not empty because if a user sends us 0, its consider empty
+                    if (strlen($searchFieldValues[2])) {
+                        $customSearchFields[$searchTable][] = $searchFieldValues;
+                    }
                 }
             }
 
-            // print_r($customSearchFields);die();
+            //organize the custom fields for nested mapping
+            $newCustomFieldsParsed = [];
+            print_r($this->processNestedArray($customSearchFields, $newCustomFieldsParsed));
+
+            ///
 
             $prepareNestedSql = function (array $searchCriteria, string $classname, string $andOr, string $fKey): string {
                 $sql = '';
@@ -418,6 +421,51 @@ class RequestUriToElasticSearch extends RequestUriToSql
         }
 
         return $sql;
+    }
+
+    protected function processNestedArray(array $customSearchFields, &$newCustomFieldsParsed): array
+    {
+        foreach ($customSearchFields as $customFieldIndex => $customFieldValue) {
+            foreach ($customFieldValue as $cValueKey => $cValueValue) {
+                $cNewKey = explode('.', $cValueValue[0]);
+
+                if (count($cNewKey) == 3) {
+                    $cValueValue[0] = str_replace($customFieldIndex . '.' . $cNewKey[1] . '.', '', $cValueValue[0]);
+
+                    $newCustomFieldsParsed[$customFieldIndex][$cNewKey[1]]['plain'][] = $cValueValue;
+                } elseif (count($cNewKey) == 2) {
+                    $cValueValue[0] = str_replace($customFieldIndex . '.', '', $cValueValue[0]);
+
+                    $newCustomFieldsParsed[$customFieldIndex]['plain'][] = $cValueValue;
+                } else {
+                    $cValueValue[0] = str_replace($customFieldIndex . '.' . $cNewKey[1] . '.', '', $cValueValue[0]);
+
+                    $this->processSubNested($newCustomFieldsParsed[$customFieldIndex][$cNewKey[1]], $cValueValue);
+                }
+            }
+        }
+
+        return $newCustomFieldsParsed;
+    }
+
+    protected function processSubNested(array &$subNested, array $subNestedValue)
+    {
+        foreach ($subNestedValue as $key => $value) {
+            if ($key == 0) {
+                $cNewKey = explode('.', $value);
+                $subNestedValue[0] = str_replace($cNewKey[0] . '.', '', $subNestedValue[0]);
+
+                if (count($cNewKey) == 2) {
+                    $subNested[$cNewKey[0]][] = $subNestedValue;
+                } else {
+                    //print_r($subNestedValue);
+                    if (!isset($subNested[$cNewKey[1]])) {
+                        $subNested[$cNewKey[1]] = [];
+                    }
+                    $this->processSubNested($subNested, $subNestedValue);
+                }
+            }
+        }
     }
 
     /**
