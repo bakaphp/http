@@ -220,7 +220,10 @@ class RequestUriToElasticSearch extends RequestUriToSql
                 }
             }
 
-            //organize the custom fields for nested mapping
+            /**
+             * organize the custom fields for nested mapping.
+             * @todo reduce the # of cycles to format the cutom structure to 1
+             */
             $newCustomFieldsParsed = [];
             $this->formatNestedArray($customSearchFields, $newCustomFieldsParsed);
             $this->parseNestedStructureToSql($newCustomFieldsParsed, $sql, $classname);
@@ -262,7 +265,6 @@ class RequestUriToElasticSearch extends RequestUriToSql
     protected function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
     {
         $sql = '';
-        $textFields = $this->getTextFields($classname);
         list($searchField, $operator, $searchValues) = $searchCriteria;
         $operator = $this->operators[$operator];
 
@@ -595,19 +597,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
      */
     public static function parseRelationShips(string $relationships, &$results) : array
     {
-        $relationships = explode(',', $relationships);
-        $newResults = [];
-        if (!($results instanceof Model)) {
-            throw new Exception(_('Result needs to be a Baka Model'));
-        }
-        $newResults = $results->toFullArray();
-        foreach ($relationships as $relationship) {
-            if ($results->$relationship) {
-                $callRelationship = 'get' . ucfirst($relationship);
-                $newResults[$relationship] = $results->$callRelationship();
-            }
-        }
-        unset($results);
-        return $newResults;
+        //elastic search doesnt use relationships
+        return [];
     }
 }

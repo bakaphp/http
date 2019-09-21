@@ -400,7 +400,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
                         $operator = 'LIKE';
                     }
 
-                    if ($value = 'null') {
+                    if ($value == 'null') {
                         $logicConector = !$vKey ? " " . $andOr .' (' : ' OR ';
                         $sql .= $logicConector . $classname . '.' . $searchField . ' IS NULL';
                     } else {
