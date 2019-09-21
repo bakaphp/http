@@ -204,7 +204,6 @@ class RequestUriToElasticSearch extends RequestUriToSql
             // print_r($this->customSearchFields);die();
             // We have to pre-process the fields in order to have them bundled together.
             $customSearchFields = [];
-
             foreach ($this->customSearchFields as $fKey => $searchFieldValues) {
                 if (is_array(current($searchFieldValues))) {
                     foreach ($searchFieldValues as $csKey => $chainSearch) {
@@ -224,47 +223,13 @@ class RequestUriToElasticSearch extends RequestUriToSql
             //organize the custom fields for nested mapping
             $newCustomFieldsParsed = [];
             $this->formatNestedArray($customSearchFields, $newCustomFieldsParsed);
-            // print_R($customSearchFields);
-
-            // With the stuff processed we now proceed to assemble the query
-
-            /*             foreach ($customSearchFields as $fKey => $searchFieldValues) {
-                            // If the key is an integer, this means the fields have to be OR'd inside the nesting
-                            if (is_int($fKey)) {
-                                $nestedSql = ' AND (';
-                                $first = true;
-                                foreach ($searchFieldValues as $csKey => $chainSearch) {
-                                    if (count($chainSearch) > 1) {
-                                        $nestedSql .= ' nested("' . $csKey . '",';
-                                        foreach ($chainSearch as $cKey => $chain) {
-                                            $nestedSql .= $prepareNestedSql($chain, $classname, ($cKey ? 'OR' : ''), $csKey . $cKey);
-                                        }
-                                        $nestedSql .= ') ';
-                                    } else {
-                                        $nestedSql .= !$first ? ' OR nested("' . $csKey . '",' : ' nested("' . $csKey . '",';
-                                        $nestedSql .= $prepareNestedSql($chainSearch[0], $classname, '', $csKey);
-                                        $nestedSql .= ') ';
-                                    }
-                                    $first = false;
-                                }
-                                $sql .= $nestedSql . ') ';
-                            } else {
-                                $nestedSql = ' AND nested("' . $fKey . '",';
-                                foreach ($searchFieldValues as $csKey => $chainSearch) {
-                                    $nestedSql .= $prepareNestedSql($chainSearch, $classname, ($csKey ? 'AND' : ''), $fKey);
-                                }
-                                $nestedSql .= ') ';
-                                $sql .= $nestedSql;
-                            }
-                        } */
-
-            $this->parseNestedStructure($newCustomFieldsParsed, $sql, $classname);
+            $this->parseNestedStructureToSql($newCustomFieldsParsed, $sql, $classname);
         }
 
         // Replace initial `AND ` or `OR ` to avoid SQL errors.
         $sql = str_replace(
-            ['WHERE AND', 'WHERE OR', 'WHERE ( OR', '",  AND', '", AND'],
-            ['WHERE', 'WHERE', 'WHERE (', '",', '",'],
+            ['WHERE AND', 'WHERE OR', 'WHERE ( OR', '",  AND', '", AND', '",  OR', '", OR'],
+            ['WHERE', 'WHERE', 'WHERE (', '",', '",', '",', '",'],
             $sql
         );
 
@@ -366,7 +331,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
      * @param string $classname
      * @return string
      */
-    protected function parseNestedStructure(array &$newCustomFieldsParsed, string &$sql, string $classname): string
+    protected function parseNestedStructureToSql(array &$newCustomFieldsParsed, string &$sql, string $classname): string
     {
         $csKey = 1;
         foreach ($newCustomFieldsParsed as $fKey => $nestedFields) {
@@ -382,7 +347,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
                     $newNestedArray = [
                         $fKey . '.' . $nestedKey => $nestedValue
                     ];
-                    $this->parseNestedStructure($newNestedArray, $nestedSql, $classname);
+                    $this->parseNestedStructureToSql($newNestedArray, $nestedSql, $classname);
                 }
             }
 
@@ -405,12 +370,12 @@ class RequestUriToElasticSearch extends RequestUriToSql
     protected function prepareNestedSql(array $searchCriteria, string $classname, string $andOr, string $fKey): string
     {
         $sql = '';
-        list($searchField, $operator, $searchValues) = $searchCriteria;
+        list($searchField, $operator, $searchValues, $conditionOperator) = $searchCriteria;
         $operator = $this->operators[$operator];
 
         if (trim($searchValues) !== '') {
             if ($searchValues == '%%') {
-                $sql .= ' ' . $andOr . ' (' . $searchField . ' IS NULL';
+                $sql .= ' ' . $conditionOperator . ' (' . $searchField . ' IS NULL';
                 $sql .= ' OR ' . $searchField . ' = ""';
 
                 if ($this->model->$searchField === 0) {
@@ -419,7 +384,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
                 $sql .= ')';
             } elseif ($searchValues == '$$') {
-                $sql .= ' ' . $andOr . ' (' . $searchField . ' IS NOT NULL';
+                $sql .= ' ' . $conditionOperator . ' (' . $searchField . ' IS NOT NULL';
                 $sql .= ' OR ' . $searchField . ' != ""';
 
                 if ($this->model->$searchField === 0) {
@@ -443,7 +408,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
                     }
 
                     if (!$vKey) {
-                        $sql .= ' ' . $andOr . ' (' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                        $sql .= ' ' . $conditionOperator . ' (' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
                     } else {
                         $sql .= ' OR ' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
                     }
@@ -525,8 +490,75 @@ class RequestUriToElasticSearch extends RequestUriToSql
      */
     protected function prepareParams(array $unparsed): void
     {
-        $this->customSearchFields = array_key_exists('cparams', $unparsed) ? $this->parseSearchParameters($unparsed['cparams'])['mapped'] : [];
+        $this->customSearchFields = array_key_exists('cparams', $unparsed) ? $this->parseSearchParametersCustomFields($unparsed['cparams'])['mapped'] : [];
         $this->normalSearchFields = array_key_exists('params', $unparsed) ? $this->parseSearchParameters($unparsed['params'])['mapped'] : [];
+    }
+
+    /**
+     * Clone the other function to reuse especifictly for nested custom fields
+     * Parses out the search parameters from a request.
+     * Unparsed, they will look like this:
+     *    (name:Benjamin Framklin,location:Philadelphia)
+     * Parsed:
+     *    [
+     *      [
+     *          'id_delete',
+     *          ':',
+     *          0
+     *      ],[
+     *          'id',
+     *          '>',
+     *           0
+     *      ]
+     *     ].
+     *
+     * @param  string $unparsed Unparsed search string
+     * @return array  An array of fieldname=>value search parameters
+     */
+    public function parseSearchParametersCustomFields(string $unparsed): array
+    {
+        // $unparsed = urldecode($unparsed);
+        // Strip parens that come with the request string
+        $unparsed = trim($unparsed, '()');
+
+        // Now we have an array of "key:value" strings.
+        $splitFields = explode(',', $unparsed);
+        $sqlFilersOperators = implode('|', array_keys($this->operators));
+
+        $mapped = [];
+        $search = [];
+
+        // Split the strings at their colon, set left to key, and right to value.
+        foreach ($splitFields as $key => $fieldChain) {
+            $hasChain = strpos($fieldChain, ';') !== false;
+            $fieldChain = explode(';', $fieldChain);
+
+            foreach ($fieldChain as $field) {
+                $splitField = preg_split('#(' . $sqlFilersOperators . ')#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+                if (count($splitField) > 3) {
+                    $splitField[2] = implode('', array_splice($splitField, 2));
+                }
+
+                if (!strlen($splitField[2])) {
+                    continue;
+                }
+
+                if ($hasChain) {
+                    $splitField[] = 'OR';
+                } else {
+                    $splitField[] = 'AND';
+                }
+
+                $mapped[] = $splitField;
+                $search[$splitField[0]] = $splitField[2];
+            }
+        }
+
+        return [
+            'mapped' => $mapped,
+            'search' => $search,
+        ];
     }
 
     /**
