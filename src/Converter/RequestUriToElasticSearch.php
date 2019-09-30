@@ -24,10 +24,12 @@ class RequestUriToElasticSearch extends RequestUriToSql
      * @var array
      */
     protected $operators = [
-        ':' => '=',
+        '~' => '=',
+        ':' => 'LIKE',
         '>' => '>=',
         '<' => '<=',
-        '~' => '<>',
+        '!' => '<>',
+        '¬' => 'BETWEEN',
     ];
 
     /**
@@ -409,13 +411,22 @@ class RequestUriToElasticSearch extends RequestUriToSql
                         $operator = 'LIKE';
                     }
 
-                    if (!$vKey) {
-                        $sql .= ' ' . $conditionOperator . ' (' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
-                    } else {
-                        $sql .= ' OR ' . $searchField . ' ' . $operator . ' :f' . $searchField . $fKey . $vKey;
+                    $bindParamsKey = ':f' . $searchField . $fKey . $vKey;
+                    /**
+                     * if we find the bidnparam key its means it we are dealing with > and < search, so to avoid
+                     * overwriting the value we have to hange the vKey value.
+                     */
+                    if ($vKeyFound = array_search($bindParamsKey, $this->bindParamsKeys)) {
+                        $bindParamsKey = ':f' . $searchField . $fKey . ($vKeyFound + 1);
                     }
 
-                    $this->bindParamsKeys[] = ':f' . $searchField . $fKey . $vKey;
+                    if (!$vKey) {
+                        $sql .= ' ' . $andOr . ' (' . $searchField . ' ' . $operator . ' '.$bindParamsKey;
+                    } else {
+                        $sql .= ' OR ' . $searchField . ' ' . $operator . ' '.$bindParamsKey;
+                    }
+
+                    $this->bindParamsKeys[] = $bindParamsKey;
                     $this->bindParamsValues[] = "'{$value}'";
                 }
 
@@ -576,13 +587,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
         $columns = explode(',', $columns);
 
         foreach ($columns as &$column) {
-            $column = preg_replace('/[^a-zA-_Z]/', '', $column);
-            if (strpos($column, '.') === false) {
-                $column = "{$column}";
-            } else {
-                $as = str_replace('.', '_', $column);
-                $column = "{$column} {$as}";
-            }
+            $column = preg_replace('/[^a-zA-_.Z0-9]/', '', $column);
         }
 
         $this->columns = implode(', ', $columns);

@@ -84,6 +84,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
         '>' => '>=',
         '<' => '<=',
         '~' => '!=',
+        '¬' => 'BETWEEN',
     ];
 
     /**
