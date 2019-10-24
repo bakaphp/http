@@ -402,7 +402,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
                     }
 
                     if ($value == 'null') {
-                        $logicConector = !$vKey ? " " . $andOr .' (' : ' OR ';
+                        $logicConector = !$vKey ? ' ' . $andOr . ' (' : ' OR ';
                         $sql .= $logicConector . $classname . '.' . $searchField . ' IS NULL';
                     } else {
                         if (!$vKey) {
@@ -460,9 +460,13 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
 
                 $sql .= ')';
             } else {
-                if (strpos($searchValues, '|')) {
+                if (strpos($searchValues, '|') && $operator != 'BETWEEN') {
                     $searchValues = explode('|', $searchValues);
                 } else {
+                    //format between
+                    if ($operator == 'BETWEEN') {
+                        $searchValues = str_replace('|', "' AND '", $searchValues);
+                    }
                     $searchValues = [$searchValues];
                 }
 

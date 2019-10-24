@@ -290,9 +290,13 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
                 $sql .= ')';
             } else {
-                if (strpos($searchValues, '|')) {
+                if (strpos($searchValues, '|') && $operator != 'BETWEEN') {
                     $searchValues = explode('|', $searchValues);
                 } else {
+                    //format between
+                    if ($operator == 'BETWEEN') {
+                        $searchValues = str_replace('|', "' AND '", $searchValues);
+                    }
                     $searchValues = [$searchValues];
                 }
 
@@ -397,9 +401,13 @@ class RequestUriToElasticSearch extends RequestUriToSql
 
                 $sql .= ')';
             } else {
-                if (strpos($searchValues, '|')) {
+                if (strpos($searchValues, '|') && $operator != 'BETWEEN') {
                     $searchValues = explode('|', $searchValues);
                 } else {
+                    //format between
+                    if ($operator == 'BETWEEN') {
+                        $searchValues = str_replace('|', "' AND '", $searchValues);
+                    }
                     $searchValues = [$searchValues];
                 }
 
@@ -421,9 +429,9 @@ class RequestUriToElasticSearch extends RequestUriToSql
                     }
 
                     if (!$vKey) {
-                        $sql .= ' ' . $andOr . ' (' . $searchField . ' ' . $operator . ' '.$bindParamsKey;
+                        $sql .= ' ' . $andOr . ' (' . $searchField . ' ' . $operator . ' ' . $bindParamsKey;
                     } else {
-                        $sql .= ' OR ' . $searchField . ' ' . $operator . ' '.$bindParamsKey;
+                        $sql .= ' OR ' . $searchField . ' ' . $operator . ' ' . $bindParamsKey;
                     }
 
                     $this->bindParamsKeys[] = $bindParamsKey;
