@@ -365,7 +365,8 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
         $sql = '';
         $textFields = $this->getTextFields($classname);
         list($searchField, $operator, $searchValues) = $searchCriteria;
-        $operator = $this->operators[$operator];
+        //if its not found we seach by default for equal (=)
+        $operator = $this->operators[$operator] ?? $this->operators[':'];
 
         if (trim($searchValues) !== '') {
             if ($searchValues == '%%') {
