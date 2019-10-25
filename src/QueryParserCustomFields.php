@@ -77,6 +77,7 @@ class QueryParserCustomFields extends QueryParser
         ':' => '=',
         '>' => '>=',
         '<' => '<=',
+        '~' => '!=',
     ];
 
     /**
@@ -620,7 +621,7 @@ class QueryParserCustomFields extends QueryParser
             $fieldChain = explode(';', $fieldChain);
 
             foreach ($fieldChain as $field) {
-                $splitField = preg_split('#(:|>|<)#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
+                $splitField = preg_split('#(:|>|<|~)#', $field, -1, PREG_SPLIT_DELIM_CAPTURE);
 
                 if (count($splitField) > 3) {
                     $splitField[2] = implode('', array_splice($splitField, 2));
