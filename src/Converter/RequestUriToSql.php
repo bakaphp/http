@@ -181,28 +181,18 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
                 list($modelColumn, $order) = explode('|', $sort);
                 // Check to see whether this is a related sorting by looking for a .
                 if (strpos($modelColumn, '.') !== false) {
-                    // We are using a related sort.
-                    // Get the namespace for the models from the configuration.
-                    $modelNamespace = \Phalcon\Di::getDefault()->getConfig()->namespace->models;
                     // Get the model name and the sort column from the sent parameter
                     list($model, $column) = explode('.', $modelColumn);
                     // Convert the model name into camel case.
                     $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
                     // Create the model name with the appended namespace.
-                    $modelName = $modelNamespace . '\\' . $modelName;
-
-                    // Make sure the model exists.
-                    if (!class_exists($modelName)) {
-                        throw new Exception('Related model does not exist.');
-                    }
+                    $modelName = $this->getRelationModelNameByAlias($model);
 
                     // Instance the model so we have access to the getSource() function.
                     $modelObject = new $modelName();
-                    // Instance meta data memory to access the primary keys for the table.
-                    $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
                     // Get the first matching primary key.
                     // @TODO This will hurt on compound primary keys.
-                    $primaryKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
+                    $primaryKey = $modelObject->getPrimaryKeys()[0];
                     // We need the table to exist in the query in order for the related sort to work.
                     // Therefore we add it to comply with this by comparing the primary key to not being NULL.
                     $this->relationSearchFields[$modelName][] = [
@@ -583,22 +573,33 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
     protected function parseRelationParameters(array $unparsed): array
     {
         $parseRelationParameters = [];
-        $modelClassName = get_class($this->model);
 
         foreach ($unparsed as $model => $query) {
-            $relationAlias = str_replace(' ', '', $model);
-            $relationData = $this->di->getModelsManager()->getRelationByAlias($modelClassName, $relationAlias);
-
-            if (!$relationData) {
-                throw new Exception('No Relationship found on model ' . $modelClassName . ' with alias ' . $relationAlias);
-            }
-
-            $modelName = $relationData->getReferencedModel();
-
+            $modelName = $this->getRelationModelNameByAlias($model);
             $parseRelationParameters[$modelName] = $this->parseSearchParameters($query)['mapped'];
         }
 
         return $parseRelationParameters;
+    }
+
+    /**
+     * Given a alias get the relationship Model Class Name.
+     *
+     * @param string $alias
+     * @return string
+     */
+    protected function getRelationModelNameByAlias(string $alias): string
+    {
+        $modelClassName = get_class($this->model);
+        $alias = trim(str_replace(' ', '', $alias));
+
+        $relationData = $this->di->getModelsManager()->getRelationByAlias($modelClassName, $alias);
+
+        if (!$relationData) {
+            throw new Exception('No Relationship found on model ' . $modelClassName . ' with alias ' . $alias);
+        }
+
+        return $relationData->getReferencedModel();
     }
 
     /**
