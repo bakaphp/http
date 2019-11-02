@@ -583,15 +583,17 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
     protected function parseRelationParameters(array $unparsed): array
     {
         $parseRelationParameters = [];
-        $modelNamespace = \Phalcon\Di::getDefault()->getConfig()->namespace->models;
+        $modelClassName = get_class($this->model);
 
         foreach ($unparsed as $model => $query) {
-            $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
-            $modelName = $modelNamespace . '\\' . $modelName;
+            $relationAlias = str_replace(' ', '', $model);
+            $relationData = $this->di->getModelsManager()->getRelationByAlias($modelClassName, $relationAlias);
 
-            if (!class_exists($modelName)) {
-                throw new Exception('Related model does not exist.');
+            if (!$relationData) {
+                throw new Exception('No Relationship found on model ' . $modelClassName . ' with alias ' . $relationAlias);
             }
+
+            $modelName = $relationData->getReferencedModel();
 
             $parseRelationParameters[$modelName] = $this->parseSearchParameters($query)['mapped'];
         }
