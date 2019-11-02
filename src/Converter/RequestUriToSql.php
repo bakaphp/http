@@ -282,6 +282,10 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
         if (!empty($this->customSearchFields)) {
             $modules = Modules::findFirstByName($classReflection->getShortName());
 
+            if (!$modules) {
+                throw new Exception('No custom field define for this module - ' . $classReflection->getShortName());
+            }
+
             $sql .= ' INNER JOIN ' . $customClassname . ' ON ' . $customClassname . '.id = (';
             $sql .= 'SELECT ' . $customClassname . '.id FROM ' . $customClassname . ' WHERE ' . $customClassname . '.' . $classname . '_id = ' . $classname . '.id';
 
@@ -681,7 +685,6 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
     {
         // Strip parens that come with the request string
         $tableName = explode('(', $unparsed, 2);
-        //print_r($tableName);die();
         $tableName = strtolower($tableName[0]);
 
         $modelName = str_replace('_', ' ', $tableName);
