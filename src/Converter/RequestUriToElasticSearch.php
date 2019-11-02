@@ -110,40 +110,8 @@ class RequestUriToElasticSearch extends RequestUriToSql
                 // Get the model, column and sort order from the sent parameter.
                 list($modelColumn, $order) = explode('|', $sort);
                 // Check to see whether this is a related sorting by looking for a .
-                if (strpos($modelColumn, '.') !== false) {
-                    // We are using a related sort.
-                    // Get the namespace for the models from the configuration.
-                    $modelNamespace = \Phalcon\Di::getDefault()->getConfig()->namespace->models;
-                    // Get the model name and the sort column from the sent parameter
-                    list($model, $column) = explode('.', $modelColumn);
-                    // Convert the model name into camel case.
-                    $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
-                    // Create the model name with the appended namespace.
-                    $modelName = $modelNamespace . '\\' . $modelName;
 
-                    // Make sure the model exists.
-                    if (!class_exists($modelName)) {
-                        throw new Exception('Related model does not exist.');
-                    }
-
-                    // Instance the model so we have access to the getSource() function.
-                    $modelObject = new $modelName();
-                    // Instance meta data memory to access the primary keys for the table.
-                    $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
-                    // Get the first matching primary key.
-                    // @TODO This will hurt on compound primary keys.
-                    $primaryKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
-                    // We need the table to exist in the query in order for the related sort to work.
-                    // Therefore we add it to comply with this by comparing the primary key to not being NULL.
-                    $this->relationSearchFields[$modelName][] = [
-                        $primaryKey, ':', '$$',
-                    ];
-
-                    $sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
-                    unset($modelObject);
-                } else {
-                    $sort = " ORDER BY {$modelColumn} {$order}";
-                }
+                $sort = " ORDER BY {$modelColumn} {$order}";
             }
         }
 
