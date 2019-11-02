@@ -98,10 +98,10 @@ class BaseController extends Controller
         }
 
         //in order to use the current response instead of having to create a new object , this is needed for swoole servers
-        //$response = $this->response ?? new Response();
         $this->response->setStatusCode($statusCode, $statusMessage);
         $this->response->setContentType('application/vnd.api+json', 'UTF-8');
         $this->response->setJsonContent($content);
+        //@todo add E-Tag
 
         return $this->response;
     }
