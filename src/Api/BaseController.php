@@ -87,14 +87,13 @@ class BaseController extends Controller
      */
     protected function response($content, int $statusCode = 200, string $statusMessage = 'OK'): Response
     {
-        $response = [
-            'statusCode' => $statusCode,
-            'statusMessage' => $statusMessage,
-            'content' => $content,
-        ];
-
+        //log the response
         if ($this->config->application->debug->logRequest) {
-            $this->log->addInfo('RESPONSE', $response);
+            $this->log->addInfo('RESPONSE', [
+                'statusCode' => $statusCode,
+                'statusMessage' => $statusMessage,
+                'content' => $content,
+            ]);
         }
 
         //in order to use the current response instead of having to create a new object , this is needed for swoole servers
