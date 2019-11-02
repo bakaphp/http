@@ -219,6 +219,27 @@ class UriToSqlTest extends PhalconUnitTestCase
      */
     public function testQueryConditionalsWithRelationships()
     {
+        $params = [];
+        $params['q'] = '(is_deleted:0)';
+        $params['rq']['type'] = '(id:1)';
+        $params['limit'] = '3';
+
+        $leads = new Leads();
+        $requestToSql = new RequestUriToSql($params, $leads);
+        $requestToSql->setCustomColumns('companies_id');
+        $request = $requestToSql->convert();
+
+        $results = (new SimpleRecords(null, $leads, $leads->getReadConnection()->query($request['sql'], $request['bind'])));
+        $count = $leads->getReadConnection()->query($request['countSql'], $request['bind'])->fetch(\PDO::FETCH_OBJ)->total;
+
+        //confirme records
+        foreach ($results as $result) {
+            $this->assertTrue(isset($result->companies_id));
+            $this->assertFalse(isset($result->users_id));
+        }
+
+        $this->assertEquals(3, count($results->toArray()));
+        $this->assertEquals(3, $count);
     }
 
     /**
