@@ -10,6 +10,9 @@ use Exception;
 use Phalcon\Di;
 use Phalcon\Mvc\Model\ResultsetInterface;
 use Baka\Http\Contracts\Converter\CustomQueriesTrait;
+use Phalcon\Mvc\Model\MetaData\Memory as MetaDataMemory;
+use Phalcon\Di\Injectable;
+use ReflectionClass;
 
 /**
  * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret.
@@ -24,7 +27,7 @@ use Baka\Http\Contracts\Converter\CustomQueriesTrait;
  *   Partials:
  *     offset=20
  */
-class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterface
+class RequestUriToSql extends Injectable implements ConverterInterface
 {
     use CustomQueriesTrait;
 
@@ -52,6 +55,11 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
      * @var int
      */
     protected $limit = 25;
+
+    /**
+     * @var string
+     */
+    protected $sort = null;
 
     /**
      * @var int
@@ -166,66 +174,25 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
             }
         }
 
-        // Prepare the search parameters.
-        $this->prepareParams($params);
-
         // Sorting logic for related searches.
-        // @TODO Explore this in the future. There might be better ways to carry it out.
-        $sort = '';
         if (array_key_exists('sort', $this->request)) {
-            $sort = $this->request['sort'];
-
-            if (!empty($sort)) {
-                // Get the model, column and sort order from the sent parameter.
-                list($modelColumn, $order) = explode('|', $sort);
-                // Check to see whether this is a related sorting by looking for a .
-                if (strpos($modelColumn, '.') !== false) {
-                    // We are using a related sort.
-                    // Get the namespace for the models from the configuration.
-                    $modelNamespace = \Phalcon\Di::getDefault()->getConfig()->namespace->models;
-                    // Get the model name and the sort column from the sent parameter
-                    list($model, $column) = explode('.', $modelColumn);
-                    // Convert the model name into camel case.
-                    $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
-                    // Create the model name with the appended namespace.
-                    $modelName = $modelNamespace . '\\' . $modelName;
-
-                    // Make sure the model exists.
-                    if (!class_exists($modelName)) {
-                        throw new Exception('Related model does not exist.');
-                    }
-
-                    // Instance the model so we have access to the getSource() function.
-                    $modelObject = new $modelName();
-                    // Instance meta data memory to access the primary keys for the table.
-                    $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
-                    // Get the first matching primary key.
-                    // @TODO This will hurt on compound primary keys.
-                    $primaryKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
-                    // We need the table to exist in the query in order for the related sort to work.
-                    // Therefore we add it to comply with this by comparing the primary key to not being NULL.
-                    $this->relationSearchFields[$modelName][] = [
-                        $primaryKey, ':', '$$',
-                    ];
-
-                    $sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
-                    unset($modelObject);
-                } else {
-                    $sort = " ORDER BY {$modelColumn} {$order}";
-                }
+            if (!empty($this->request['sort'])) {
+                $this->setCustomSort(trim($this->request['sort']));
             }
         }
+
+        // Prepare the search parameters.
+        $this->prepareParams($params);
 
         // Append any additional user parameters
         $this->appendAdditionalParams();
         //base on th eesarch params get the raw query
         $rawSql = $this->prepareCustomSearch();
 
-        //sort
-        if (!empty($sort)) {
-            $rawSql['sql'] .= $sort;
+        if (!is_null($this->sort)) {
+            $rawSql['sql'] .= $this->sort;
         }
-
+        
         // Calculate the corresponding offset
         $this->offset = ($this->page - 1) * $this->limit;
         $rawSql['sql'] .= " LIMIT {$this->limit} OFFSET {$this->offset}";
@@ -241,8 +208,8 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
      */
     protected function prepareCustomSearch($hasSubquery = false): array
     {
-        $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
-        $classReflection = (new \ReflectionClass($this->model));
+        $metaData = new MetaDataMemory();
+        $classReflection = (new ReflectionClass($this->model));
         $classname = $this->model->getSource();
 
         $primaryKey = null;
@@ -401,7 +368,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
                     }
 
                     if ($value = 'null') {
-                        $logicConector = !$vKey ? " " . $andOr .' (' : ' OR ';
+                        $logicConector = !$vKey ? ' ' . $andOr . ' (' : ' OR ';
                         $sql .= $logicConector . $classname . '.' . $searchField . ' IS NULL';
                     } else {
                         if (!$vKey) {
@@ -577,7 +544,7 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
     protected function parseRelationParameters(array $unparsed): array
     {
         $parseRelationParameters = [];
-        $modelNamespace = \Phalcon\Di::getDefault()->getConfig()->namespace->models;
+        $modelNamespace = Di::getDefault()->getConfig()->namespace->models;
 
         foreach ($unparsed as $model => $query) {
             $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
@@ -966,5 +933,58 @@ class RequestUriToSql extends \Phalcon\Di\Injectable implements ConverterInterfa
 
         unset($results);
         return $newResults;
+    }
+
+    /**
+     * Set CustomSort for the query.
+     *
+     * @param string $sort
+     * @return string
+     */
+    public function setCustomSort(?string $sort)
+    {
+        $this->sort = null;
+        $sort = null;
+
+        if (!is_null($sort)) {
+            // Get the model, column and sort order from the sent parameter.
+            list($modelColumn, $order) = explode('|', $sort);
+            // Check to see whether this is a related sorting by looking for a .
+            if (strpos($modelColumn, '.') !== false) {
+                // We are using a related sort.
+                // Get the namespace for the models from the configuration.
+                $modelNamespace = Di::getDefault()->getConfig()->namespace->models;
+                // Get the model name and the sort column from the sent parameter
+                list($model, $column) = explode('.', $modelColumn);
+                // Convert the model name into camel case.
+                $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
+                // Create the model name with the appended namespace.
+                $modelName = $modelNamespace . '\\' . $modelName;
+
+                // Make sure the model exists.
+                if (!class_exists($modelName)) {
+                    throw new Exception('Related model does not exist.');
+                }
+
+                // Instance the model so we have access to the getSource() function.
+                $modelObject = new $modelName();
+                // Instance meta data memory to access the primary keys for the table.
+                $metaData = new MetaDataMemory();
+
+                // Get the first matching primary key.
+                // @TODO This will hurt on compound primary keys.
+                $primaryKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
+                // We need the table to exist in the query in order for the related sort to work.
+                // Therefore we add it to comply with this by comparing the primary key to not being NULL.
+                $this->relationSearchFields[$modelName][] = [
+                    $primaryKey, ':', '$$',
+                ];
+
+                $this->sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
+                unset($modelObject);
+            } else {
+                $this->sort = " ORDER BY {$modelColumn} {$order}";
+            }
+        }
     }
 }

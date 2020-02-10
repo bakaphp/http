@@ -76,6 +76,20 @@ class BaseController extends Controller
     protected $customConditions = null;
 
     /**
+     * Specify the custom limit
+     *
+     * @var int
+     */
+    protected $customLimit = null;
+
+    /**
+     * Specify the sort limit
+     *
+     * @var strong
+     */
+    protected $customSort = null;
+
+    /**
      * Send a response when needed.
      *
      * @param mixed $content
