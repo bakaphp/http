@@ -192,7 +192,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
         if (!is_null($this->sort)) {
             $rawSql['sql'] .= $this->sort;
         }
-        
+
         // Calculate the corresponding offset
         $this->offset = ($this->page - 1) * $this->limit;
         $rawSql['sql'] .= " LIMIT {$this->limit} OFFSET {$this->offset}";
@@ -941,11 +941,8 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      * @param string $sort
      * @return string
      */
-    public function setCustomSort(?string $sort)
+    public function setCustomSort(?string $sort): void
     {
-        $this->sort = null;
-        $sort = null;
-
         if (!is_null($sort)) {
             // Get the model, column and sort order from the sent parameter.
             list($modelColumn, $order) = explode('|', $sort);
