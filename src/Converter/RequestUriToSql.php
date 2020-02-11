@@ -367,7 +367,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
                         $operator = 'LIKE';
                     }
 
-                    if ($value = 'null') {
+                    if ($value == 'null') {
                         $logicConector = !$vKey ? ' ' . $andOr . ' (' : ' OR ';
                         $sql .= $logicConector . $classname . '.' . $searchField . ' IS NULL';
                     } else {
