@@ -34,14 +34,14 @@ trait CustomQueriesTrait
      *
      * @var int
      */
-    protected $limit;
+    protected $limit = 25;
 
     /**
      * Custom Sort.
      *
      * @var string
      */
-    protected $sort;
+    protected $sort = null;
 
     /**
     * Set the custom columns provide by the user.

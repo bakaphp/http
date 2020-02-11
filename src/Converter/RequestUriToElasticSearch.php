@@ -113,7 +113,7 @@ class RequestUriToElasticSearch extends RequestUriToSql
         if (!is_null($this->sort)) {
             $rawSql['sql'] .= $this->sort;
         }
-        
+
         // Calculate the corresponding offset
         $this->offset = ($this->page - 1) * $this->limit;
         $rawSql['sql'] .= " LIMIT {$this->limit} OFFSET {$this->offset}";
