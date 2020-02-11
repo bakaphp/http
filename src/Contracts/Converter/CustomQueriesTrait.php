@@ -91,7 +91,7 @@ trait CustomQueriesTrait
      */
     public function setCustomLimit(?int $limit): void
     {
-        if (is_null($limit)) {
+        if (!is_null($limit)) {
             $this->limit = $limit;
         }
     }
