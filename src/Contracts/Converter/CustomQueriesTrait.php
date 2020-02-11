@@ -2,6 +2,10 @@
 
 namespace Baka\Http\Contracts\Converter;
 
+use Exception;
+use Phalcon\Mvc\Model\MetaData\Memory as MetaDataMemory;
+use Phalcon\Di;
+
 trait CustomQueriesTrait
 {
     /**
@@ -24,6 +28,20 @@ trait CustomQueriesTrait
      * @var string
      */
     protected $customConditions = null;
+
+    /**
+     * Custom Limit.
+     *
+     * @var int
+     */
+    protected $limit;
+
+    /**
+     * Custom Sort.
+     *
+     * @var string
+     */
+    protected $sort;
 
     /**
     * Set the custom columns provide by the user.
@@ -62,6 +80,19 @@ trait CustomQueriesTrait
     {
         if (!is_null($query)) {
             $this->customConditions = ' ' . $query;
+        }
+    }
+
+    /**
+     * Overwrite the limit of the current Request.
+     *
+     * @param integer $limit
+     * @return void
+     */
+    public function setCustomLimit(?int $limit): void
+    {
+        if (is_null($limit)) {
+            $this->limit = $limit;
         }
     }
 }
