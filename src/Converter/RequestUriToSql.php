@@ -529,7 +529,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      */
     protected function prepareParams(array $unparsed): void
     {
-        $this->relationSearchFields = array_key_exists('rparams', $unparsed) ? $this->parseRelationParameters($unparsed['rparams']) : [];
+        $this->relationSearchFields = array_key_exists('rparams', $unparsed) ? $this->parseRelationParameters($unparsed['rparams']) : $this->relationSearchFields;
         $this->customSearchFields = array_key_exists('cparams', $unparsed) ? $this->parseSearchParameters($unparsed['cparams'])['mapped'] : [];
         $this->normalSearchFields = array_key_exists('params', $unparsed) ? $this->parseSearchParameters($unparsed['params'])['mapped'] : [];
     }
