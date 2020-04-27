@@ -229,9 +229,13 @@ class RequestUriToSql extends Injectable implements ConverterInterface
                 $modelObject = new $model();
                 $model = $modelObject->getSource();
 
-                $relatedKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
+                $relationKey = $relatedKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
                 $relation = $this->model->getModelsManager()->getRelationsBetween(get_class($this->model), get_class($modelObject));
-                $relationKey = (isset($relation) && count($relation)) ? $relation[0]->getFields() : $relatedKey;
+
+                if (isset($relation) && count($relation)) {
+                    $relatedKey = $relation[0]->getReferencedFields();
+                    $relationKey = $relation[0]->getFields();
+                }
 
                 $sql .= " INNER JOIN {$model} ON {$model}.{$relatedKey} = (";
                 $sql .= "SELECT {$model}.{$relatedKey} FROM {$model} WHERE {$model}.{$relatedKey} = {$classname}.{$relationKey}";
