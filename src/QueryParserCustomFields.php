@@ -8,7 +8,7 @@ use Baka\Database\Model;
 use Exception;
 
 /**
- * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret
+ * Base QueryParser. Parse GET request for a API to a array Phalcon Model find and FindFirst can intepret.
  *
  * Supports queries with the following paramters:
  *   Searching:
@@ -91,7 +91,7 @@ class QueryParserCustomFields extends QueryParser
     private $bindParamsValues = [];
 
     /**
-     * Pass the request
+     * Pass the request.
      */
     public function __construct(array $request, Model $model)
     {
@@ -105,9 +105,10 @@ class QueryParserCustomFields extends QueryParser
      * Sets Controller fields for these variables.
      *
      * @param  array $allowedFields Allowed fields array for search and partials
-     * @return boolean              Always true if no exception is thrown
+     *
+     * @return bool              Always true if no exception is thrown
      */
-    public function request(): array
+    public function request() : array
     {
         $params = [
             'subquery' => '',
@@ -169,43 +170,51 @@ class QueryParserCustomFields extends QueryParser
         if (array_key_exists('sort', $this->request)) {
             $sort = $this->request['sort'];
 
-            if (!empty($sort)) {
+            if (!empty($sort) && strpos($sort, '|') !== false) {
                 // Get the model, column and sort order from the sent parameter.
                 list($modelColumn, $order) = explode('|', $sort);
-                // Check to see whether this is a related sorting by looking for a .
-                if (strpos($modelColumn, '.') !== false) {
-                    // We are using a related sort.
-                    // Get the namespace for the models from the configuration.
-                    $modelNamespace = \Phalcon\Di::getDefault()->getConfig()->namespace->models;
-                    // Get the model name and the sort column from the sent parameter
-                    list($model, $column) = explode('.', $modelColumn);
-                    // Convert the model name into camel case.
-                    $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
-                    // Create the model name with the appended namespace.
-                    $modelName = $modelNamespace . '\\' . $modelName;
+                $order = strtolower($order) === 'asc' ? 'ASC' : 'DESC';
 
-                    // Make sure the model exists.
-                    if (!class_exists($modelName)) {
-                        throw new \Exception('Related model does not exist.');
+                $modelColumn = preg_replace("/[^a-zA-Z0-9_\s]/", '', $modelColumn);
+                $columnsData = $this->getTableColumns();
+                if (isset($columnsData[$modelColumn])) {
+                    // Check to see whether this is a related sorting by looking for a .
+                    if (strpos($modelColumn, '.') !== false) {
+                        // We are using a related sort.
+                        // Get the namespace for the models from the configuration.
+                        $modelNamespace = \Phalcon\Di::getDefault()->getConfig()->namespace->models;
+                        // Get the model name and the sort column from the sent parameter
+                        list($model, $column) = explode('.', $modelColumn);
+                        // Convert the model name into camel case.
+                        $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
+                        // Create the model name with the appended namespace.
+                        $modelName = $modelNamespace . '\\' . $modelName;
+
+                        // Make sure the model exists.
+                        if (!class_exists($modelName)) {
+                            throw new \Exception('Related model does not exist.');
+                        }
+
+                        // Instance the model so we have access to the getSource() function.
+                        $modelObject = new $modelName();
+                        // Instance meta data memory to access the primary keys for the table.
+                        $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
+                        // Get the first matching primary key.
+                        // @TODO This will hurt on compound primary keys.
+                        $primaryKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
+                        // We need the table to exist in the query in order for the related sort to work.
+                        // Therefore we add it to comply with this by comparing the primary key to not being NULL.
+                        $this->relationSearchFields[$modelName][] = [
+                            $primaryKey, ':', '$$',
+                        ];
+
+                        $sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
+                        unset($modelObject);
+                    } else {
+                        $sort = " ORDER BY {$modelColumn} {$order}";
                     }
-
-                    // Instance the model so we have access to the getSource() function.
-                    $modelObject = new $modelName();
-                    // Instance meta data memory to access the primary keys for the table.
-                    $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
-                    // Get the first matching primary key.
-                    // @TODO This will hurt on compound primary keys.
-                    $primaryKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
-                    // We need the table to exist in the query in order for the related sort to work.
-                    // Therefore we add it to comply with this by comparing the primary key to not being NULL.
-                    $this->relationSearchFields[$modelName][] = [
-                        $primaryKey, ':', '$$',
-                    ];
-
-                    $sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
-                    unset($modelObject);
                 } else {
-                    $sort = " ORDER BY {$modelColumn} {$order}";
+                    $sort = '';
                 }
             }
         }
@@ -228,12 +237,13 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * gien the request array , get the custom query to find the results
+     * gien the request array , get the custom query to find the results.
      *
      * @param  array  $params
+     *
      * @return string
      */
-    protected function prepareCustomSearch($hasSubquery = false): array
+    protected function prepareCustomSearch($hasSubquery = false) : array
     {
         $metaData = new \Phalcon\Mvc\Model\MetaData\Memory();
         $classReflection = (new \ReflectionClass($this->model));
@@ -261,10 +271,10 @@ class QueryParserCustomFields extends QueryParser
 
                 $relationKey = $primaryKey;
                 $referenceKey = $primaryKey;
-                
+
                 if (isset($relation) && $relation && count($relation)) {
-                    $relationKey =  $relation[0]->getFields();
-                    $referenceKey =  $relation[0]->getReferencedFields();
+                    $relationKey = $relation[0]->getFields();
+                    $referenceKey = $relation[0]->getReferencedFields();
                 }
 
                 $sql .= " INNER JOIN {$model} ON {$model}.{$relatedKey} = (";
@@ -360,7 +370,7 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return string
      */
-    private function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    private function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey) : string
     {
         $sql = '';
         $textFields = $this->getTextFields($classname);
@@ -402,7 +412,7 @@ class QueryParserCustomFields extends QueryParser
                     }
 
                     if ($value == 'null') {
-                        $logicConector = !$vKey ? " " . $andOr .' (' : ' OR ';
+                        $logicConector = !$vKey ? ' ' . $andOr . ' (' : ' OR ';
                         $sql .= $logicConector . $classname . '.' . $searchField . ' IS NULL';
                     } else {
                         if (!$vKey) {
@@ -433,7 +443,7 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return string
      */
-    private function prepareRelatedSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    private function prepareRelatedSql(array $searchCriteria, string $classname, string $andOr, int $fKey) : string
     {
         $sql = '';
         $textFields = $this->getTextFields($classname);
@@ -501,7 +511,7 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return string
      */
-    private function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey): string
+    private function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey) : string
     {
         $sql = '';
         list($searchField, $operator, $searchValue) = $searchCriteria;
@@ -557,11 +567,11 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Preparse the parameters to be used in the search
+     * Preparse the parameters to be used in the search.
      *
      * @return void
      */
-    protected function prepareParams(array $unparsed): void
+    protected function prepareParams(array $unparsed) : void
     {
         $this->relationSearchFields = array_key_exists('rparams', $unparsed) ? $this->parseRelationParameters($unparsed['rparams']) : [];
         $this->customSearchFields = array_key_exists('cparams', $unparsed) ? $this->parseSearchParameters($unparsed['cparams'])['mapped'] : [];
@@ -569,13 +579,13 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Parse relationship query parameters
+     * Parse relationship query parameters.
      *
      * @param  array $unparsed
      *
      * @return array
      */
-    protected function parseRelationParameters(array $unparsed): array
+    protected function parseRelationParameters(array $unparsed) : array
     {
         $parseRelationParameters = [];
         $modelNamespace = \Phalcon\Di::getDefault()->getConfig()->namespace->models;
@@ -599,12 +609,13 @@ class QueryParserCustomFields extends QueryParser
      * Unparsed, they will look like this:
      *    (name:Benjamin Framklin,location:Philadelphia)
      * Parsed:
-     *     array('name'=>'Benjamin Franklin', 'location'=>'Philadelphia')
+     *     array('name'=>'Benjamin Franklin', 'location'=>'Philadelphia').
      *
      * @param  string $unparsed Unparsed search string
+     *
      * @return array            An array of fieldname=>value search parameters
      */
-    public function parseSearchParameters(string $unparsed): array
+    public function parseSearchParameters(string $unparsed) : array
     {
         // $unparsed = urldecode($unparsed);
         // Strip parens that come with the request string
@@ -645,12 +656,13 @@ class QueryParserCustomFields extends QueryParser
 
     /**
      * get the text field from this model database
-     * so we can do like search
+     * so we can do like search.
      *
      * @param  string $table
+     *
      * @return array
      */
-    private function getTextFields($table): array
+    private function getTextFields($table) : array
     {
         $columnsData = $this->model->getReadConnection()->describeColumns($table);
         $textFields = [];
@@ -668,11 +680,11 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append any defined additional parameters
+     * Append any defined additional parameters.
      *
      * @return void
      */
-    public function appendAdditionalParams(): void
+    public function appendAdditionalParams() : void
     {
         if (!empty($this->additionalSearchFields)) {
             $this->normalSearchFields = array_merge_recursive($this->normalSearchFields, $this->additionalSearchFields);
@@ -688,37 +700,37 @@ class QueryParserCustomFields extends QueryParser
     }
 
     /**
-     * Append additional search parameters
+     * Append additional search parameters.
      *
      * @param array $params
      *
      * @return void
      */
-    public function appendParams(array $params): void
+    public function appendParams(array $params) : void
     {
         $this->additionalSearchFields = $params;
     }
 
     /**
-     * Append additional search parameters
+     * Append additional search parameters.
      *
      * @param array $params
      *
      * @return void
      */
-    public function appendCustomParams(array $params): void
+    public function appendCustomParams(array $params) : void
     {
         $this->additionalCustomSearchFields = $params;
     }
 
     /**
-     * Append additional search parameters
+     * Append additional search parameters.
      *
      * @param array $params
      *
      * @return void
      */
-    public function appendRelationParams(array $params): void
+    public function appendRelationParams(array $params) : void
     {
         $this->additionalRelationSearchFields = $params;
     }
@@ -730,7 +742,7 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return void
      */
-    protected function parseColumns(string $columns): void
+    protected function parseColumns(string $columns) : void
     {
         // Split the columns string into individual columns
         $columns = explode(',', $columns);
@@ -752,7 +764,7 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return int
      */
-    public function getLimit(): int
+    public function getLimit() : int
     {
         return $this->limit;
     }
@@ -762,7 +774,7 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return int
      */
-    public function getPage(): int
+    public function getPage() : int
     {
         return $this->page;
     }
@@ -772,16 +784,17 @@ class QueryParserCustomFields extends QueryParser
      *
      * @return int
      */
-    public function getOffset(): int
+    public function getOffset() : int
     {
         return $this->offset;
     }
 
     /**
-     * Based on the given relaitonship , add the relation array to the Resultset
+     * Based on the given relaitonship , add the relation array to the Resultset.
      *
      * @param  string $relationships
      * @param  Model $results
+     *
      * @return array
      */
     public static function parseRelationShips(string $relationships, &$results) : array
@@ -803,5 +816,20 @@ class QueryParserCustomFields extends QueryParser
 
         unset($results);
         return $newResults;
+    }
+
+    /**
+     * Get table columns.
+     */
+    public function getTableColumns() : array
+    {
+        $fields = $this->model->getReadConnection()->describeColumns($this->model->getSource());
+        $columns = [];
+
+        foreach ($fields as $field) {
+            $columns[$field->getName()] = $field->getName();
+        }
+
+        return $columns;
     }
 }
