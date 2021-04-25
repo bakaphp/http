@@ -190,7 +190,7 @@ class QueryParserCustomFields extends QueryParser
 
         // Append any additional user parameters
         $this->appendAdditionalParams();
-        //base on th eesarch params get the raw query
+        //base on the search params get the raw query
         $rawSql = $this->prepareCustomSearch();
 
         //sort
