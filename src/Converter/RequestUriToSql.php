@@ -944,6 +944,21 @@ class RequestUriToSql extends Injectable implements ConverterInterface
     }
 
     /**
+     * Get table columns.
+     */
+    public function getTableColumns() : array
+    {
+        $fields = $this->model->getReadConnection()->describeColumns($this->model->getSource());
+        $columns = [];
+
+        foreach ($fields as $field) {
+            $columns[$field->getName()] = $field->getName();
+        }
+
+        return $columns;
+    }
+
+    /**
      * Set CustomSort for the query.
      *
      * @param string $sort
@@ -961,8 +976,8 @@ class RequestUriToSql extends Injectable implements ConverterInterface
             }
 
             $modelColumn = preg_replace("/[^a-zA-Z0-9_\s]/", '', $modelColumn);
-
-            if (!$this->model->hasProperty($modelColumn)) {
+            $columnsData = $this->getTableColumns();
+            if (isset($columnsData[$modelColumn])) {
                 return ;
             }
 
