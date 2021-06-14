@@ -216,7 +216,7 @@ class QueryParserCustomFields extends QueryParser
                         $sort = " ORDER BY {$modelColumn} {$order}";
                     }
                 } else {
-                    $sort = '';
+                    $sort = null;
                 }
             } else {
                 if (isset($columnsData[$sort])) {
