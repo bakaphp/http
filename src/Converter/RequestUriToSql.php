@@ -968,23 +968,53 @@ class RequestUriToSql extends Injectable implements ConverterInterface
     public function setCustomSort(?string $sort) : void
     {
         if (!is_null($sort)) {
-            $order = null;
-            $modelColumn = $sort;
-            if (strpos($sort, '|') !== false) {
-                // Get the model, column and sort order from the sent parameter.
-                list($modelColumn, $order) = explode('|', $sort);
-            }
-
-            $modelColumn = preg_replace("/[^a-zA-Z0-9_\s]/", '', $modelColumn);
+            // Get the model, column and sort order from the sent parameter.
+            list($modelColumn, $order) = explode('|', $sort);
             $columnsData = $this->getTableColumns();
-            if (isset($columnsData[$modelColumn])) {
-                return ;
-            }
 
-            //limit the sort
             $order = strtolower($order) === 'asc' ? 'ASC' : 'DESC';
+            // Check to see whether this is a related sorting by looking for a .
+            if (strpos($modelColumn, '.') !== false) {
+                // We are using a related sort.
+                // Get the namespace for the models from the configuration.
+                $modelNamespace = Di::getDefault()->getConfig()->namespace->models;
+                // Get the model name and the sort column from the sent parameter
+                list($model, $column) = explode('.', $modelColumn);
 
-            $this->sort = " ORDER BY {$modelColumn} {$order}";
+                $modelColumn = preg_replace("/[^a-zA-Z0-9_\s]/", '', $modelColumn);
+                // Convert the model name into camel case.
+                $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
+                // Create the model name with the appended namespace.
+                $modelName = $modelNamespace . '\\' . $modelName;
+
+                // Make sure the model exists.
+                if (!class_exists($modelName)) {
+                    throw new Exception('Related model does not exist.');
+                }
+
+                // Instance the model so we have access to the getSource() function.
+                $modelObject = new $modelName();
+                // Instance meta data memory to access the primary keys for the table.
+                $metaData = new MetaDataMemory();
+
+                // Get the first matching primary key.
+                // @TODO This will hurt on compound primary keys.
+                $primaryKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
+                // We need the table to exist in the query in order for the related sort to work.
+                // Therefore we add it to comply with this by comparing the primary key to not being NULL.
+                if ($metaData->hasAttribute($modelObject, $column)) {
+                    $this->relationSearchFields[$modelName][] = [
+                        $primaryKey, ':', '$$',
+                    ];
+
+                    $this->sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
+                }
+                unset($modelObject);
+            } else {
+                if (isset($columnsData[$modelColumn])) {
+                    $this->sort = " ORDER BY {$modelColumn} {$order}";
+                }
+            }
         }
     }
 }
