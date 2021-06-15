@@ -6,12 +6,12 @@ use Baka\Database\CustomFields\CustomFields;
 use Baka\Database\CustomFields\Modules;
 use Baka\Database\Model;
 use Baka\Http\Contracts\Converter\ConverterInterface;
+use Baka\Http\Contracts\Converter\CustomQueriesTrait;
 use Exception;
 use Phalcon\Di;
-use Phalcon\Mvc\Model\ResultsetInterface;
-use Baka\Http\Contracts\Converter\CustomQueriesTrait;
-use Phalcon\Mvc\Model\MetaData\Memory as MetaDataMemory;
 use Phalcon\Di\Injectable;
+use Phalcon\Mvc\Model\MetaData\Memory as MetaDataMemory;
+use Phalcon\Mvc\Model\ResultsetInterface;
 use ReflectionClass;
 
 /**
@@ -119,9 +119,10 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      * Sets Controller fields for these variables.
      *
      * @param  array $allowedFields Allowed fields array for search and partials
-     * @return boolean              Always true if no exception is thrown
+     *
+     * @return bool              Always true if no exception is thrown
      */
-    public function convert(): array
+    public function convert() : array
     {
         $params = [
             'subquery' => '',
@@ -204,9 +205,10 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      * gien the request array , get the custom query to find the results.
      *
      * @param  array  $params
+     *
      * @return string
      */
-    protected function prepareCustomSearch($hasSubquery = false): array
+    protected function prepareCustomSearch($hasSubquery = false) : array
     {
         $metaData = new MetaDataMemory();
         $classReflection = (new ReflectionClass($this->model));
@@ -326,7 +328,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return string
      */
-    protected function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    protected function prepareNormalSql(array $searchCriteria, string $classname, string $andOr, int $fKey) : string
     {
         $sql = '';
         $textFields = $this->getTextFields($classname);
@@ -399,7 +401,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return string
      */
-    protected function prepareRelatedSql(array $searchCriteria, string $classname, string $andOr, int $fKey): string
+    protected function prepareRelatedSql(array $searchCriteria, string $classname, string $andOr, int $fKey) : string
     {
         $sql = '';
         $textFields = $this->getTextFields($classname);
@@ -467,7 +469,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return string
      */
-    protected function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey): string
+    protected function prepareCustomSql(array $searchCriteria, Model $modules, string $classname, string $andOr, int $fKey) : string
     {
         $sql = '';
         list($searchField, $operator, $searchValue) = $searchCriteria;
@@ -527,7 +529,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return void
      */
-    protected function prepareParams(array $unparsed): void
+    protected function prepareParams(array $unparsed) : void
     {
         $this->relationSearchFields = array_key_exists('rparams', $unparsed) ? $this->parseRelationParameters($unparsed['rparams']) : $this->relationSearchFields;
         $this->customSearchFields = array_key_exists('cparams', $unparsed) ? $this->parseSearchParameters($unparsed['cparams'])['mapped'] : [];
@@ -541,7 +543,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return array
      */
-    protected function parseRelationParameters(array $unparsed): array
+    protected function parseRelationParameters(array $unparsed) : array
     {
         $parseRelationParameters = [];
         $modelNamespace = Di::getDefault()->getConfig()->namespace->models;
@@ -578,9 +580,10 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *     ].
      *
      * @param  string $unparsed Unparsed search string
+     *
      * @return array            An array of fieldname=>value search parameters
      */
-    public function parseSearchParameters(string $unparsed): array
+    public function parseSearchParameters(string $unparsed) : array
     {
         // $unparsed = urldecode($unparsed);
         // Strip parens that come with the request string
@@ -633,9 +636,10 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * *
      * @param  string $unparsed Unparsed search string
+     *
      * @return array            An array of fieldname=>value search parameters
      */
-    protected function parseSubquery(string $unparsed): array
+    protected function parseSubquery(string $unparsed) : array
     {
         // Strip parens that come with the request string
         $tableName = explode('(', $unparsed, 2);
@@ -678,9 +682,10 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      * Prepare conditions to search in record.
      *
      * @param  string $unparsed
+     *
      * @return array
      */
-    protected function prepareSearch(array $unparsed, bool $isSearch = false, $hasSubquery = false): array
+    protected function prepareSearch(array $unparsed, bool $isSearch = false, $hasSubquery = false) : array
     {
         $statement = [
             'conditions' => '1 = 1',
@@ -743,9 +748,10 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *     array('id', 'name', 'location').
      *
      * @param  string $unparsed Unparsed string of fields to return in partial response
+     *
      * @return array            Array of fields to return in partial response
      */
-    protected function parsePartialFields(string $unparsed): array
+    protected function parsePartialFields(string $unparsed) : array
     {
         $fields = explode(',', trim($unparsed, '()'));
 
@@ -762,9 +768,10 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      * so we can do like search.
      *
      * @param  string $table
+     *
      * @return array
      */
-    protected function getTextFields($table): array
+    protected function getTextFields($table) : array
     {
         $columnsData = $this->model->getReadConnection()->describeColumns($table);
         $textFields = [];
@@ -786,7 +793,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return void
      */
-    public function appendAdditionalParams(): void
+    public function appendAdditionalParams() : void
     {
         if (!empty($this->additionalSearchFields)) {
             $this->normalSearchFields = array_merge_recursive($this->normalSearchFields, $this->additionalSearchFields);
@@ -808,7 +815,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return void
      */
-    public function appendParams(array $params): void
+    public function appendParams(array $params) : void
     {
         $this->additionalSearchFields = $params;
     }
@@ -820,7 +827,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return void
      */
-    public function appendCustomParams(array $params): void
+    public function appendCustomParams(array $params) : void
     {
         $this->additionalCustomSearchFields = $params;
     }
@@ -832,7 +839,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return void
      */
-    public function appendRelationParams(array $params): void
+    public function appendRelationParams(array $params) : void
     {
         $this->additionalRelationSearchFields = $params;
     }
@@ -844,7 +851,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return void
      */
-    protected function parseColumns(string $columns): void
+    protected function parseColumns(string $columns) : void
     {
         // Split the columns string into individual columns
         $columns = explode(',', $columns);
@@ -867,7 +874,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return int
      */
-    public function getLimit(): int
+    public function getLimit() : int
     {
         return $this->limit;
     }
@@ -877,7 +884,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return int
      */
-    public function getPage(): int
+    public function getPage() : int
     {
         return $this->page;
     }
@@ -887,7 +894,7 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @return int
      */
-    public function getOffset(): int
+    public function getOffset() : int
     {
         return $this->offset;
     }
@@ -897,9 +904,10 @@ class RequestUriToSql extends Injectable implements ConverterInterface
      *
      * @param  string $relationships
      * @param  [array|object] $results     by reference to clean the object
+     *
      * @return mixed
      */
-    public static function parseRelationShips(string $relationships, &$results): array
+    public static function parseRelationShips(string $relationships, &$results) : array
     {
         $relationships = explode(',', $relationships);
 
@@ -936,16 +944,35 @@ class RequestUriToSql extends Injectable implements ConverterInterface
     }
 
     /**
+     * Get table columns.
+     */
+    public function getTableColumns() : array
+    {
+        $fields = $this->model->getReadConnection()->describeColumns($this->model->getSource());
+        $columns = [];
+
+        foreach ($fields as $field) {
+            $columns[$field->getName()] = $field->getName();
+        }
+
+        return $columns;
+    }
+
+    /**
      * Set CustomSort for the query.
      *
      * @param string $sort
+     *
      * @return string
      */
-    public function setCustomSort(?string $sort): void
+    public function setCustomSort(?string $sort) : void
     {
         if (!is_null($sort)) {
             // Get the model, column and sort order from the sent parameter.
             list($modelColumn, $order) = explode('|', $sort);
+            $columnsData = $this->getTableColumns();
+
+            $order = strtolower($order) === 'asc' ? 'ASC' : 'DESC';
             // Check to see whether this is a related sorting by looking for a .
             if (strpos($modelColumn, '.') !== false) {
                 // We are using a related sort.
@@ -953,6 +980,8 @@ class RequestUriToSql extends Injectable implements ConverterInterface
                 $modelNamespace = Di::getDefault()->getConfig()->namespace->models;
                 // Get the model name and the sort column from the sent parameter
                 list($model, $column) = explode('.', $modelColumn);
+
+                $modelColumn = preg_replace("/[^a-zA-Z0-9_\s]/", '', $modelColumn);
                 // Convert the model name into camel case.
                 $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $model)));
                 // Create the model name with the appended namespace.
@@ -973,14 +1002,18 @@ class RequestUriToSql extends Injectable implements ConverterInterface
                 $primaryKey = $metaData->getPrimaryKeyAttributes($modelObject)[0];
                 // We need the table to exist in the query in order for the related sort to work.
                 // Therefore we add it to comply with this by comparing the primary key to not being NULL.
-                $this->relationSearchFields[$modelName][] = [
-                    $primaryKey, ':', '$$',
-                ];
+                if ($metaData->hasAttribute($modelObject, $column)) {
+                    $this->relationSearchFields[$modelName][] = [
+                        $primaryKey, ':', '$$',
+                    ];
 
-                $this->sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
+                    $this->sort = " ORDER BY {$modelObject->getSource()}.{$column} {$order}";
+                }
                 unset($modelObject);
             } else {
-                $this->sort = " ORDER BY {$modelColumn} {$order}";
+                if (isset($columnsData[$modelColumn])) {
+                    $this->sort = " ORDER BY {$modelColumn} {$order}";
+                }
             }
         }
     }
