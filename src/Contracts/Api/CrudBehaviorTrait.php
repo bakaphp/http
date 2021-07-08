@@ -2,14 +2,14 @@
 
 namespace Baka\Http\Contracts\Api;
 
-use Phalcon\Http\Response;
-use Phalcon\Http\RequestInterface;
-use Baka\Http\Converter\RequestUriToSql;
-use Phalcon\Mvc\ModelInterface;
 use ArgumentCountError;
-use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
-use PDO;
+use Baka\Http\Converter\RequestUriToSql;
 use Exception;
+use PDO;
+use Phalcon\Http\RequestInterface;
+use Phalcon\Http\Response;
+use Phalcon\Mvc\ModelInterface;
+use Phalcon\Mvc\Model\Resultset\Simple as SimpleRecords;
 
 trait CrudBehaviorTrait
 {
@@ -24,11 +24,11 @@ trait CrudBehaviorTrait
     abstract protected function response($content, int $statusCode = 200, string $statusMessage = 'OK'): Response;
 
     /**
-    * Given a request it will give you the SQL to process.
-    *
-    * @param RequestInterface $request
-    * @return string
-    */
+     * Given a request it will give you the SQL to process.
+     *
+     * @param RequestInterface $request
+     * @return string
+     */
     protected function processRequest(RequestInterface $request): array
     {
         //parse the rquest
@@ -106,8 +106,8 @@ trait CrudBehaviorTrait
                 sprintf(
                     'Request no processed. Missing following params : %s.',
                     implode(', ', $diff)
-                    )
-                );
+                )
+            );
         }
 
         $results = new SimpleRecords(
@@ -123,7 +123,7 @@ trait CrudBehaviorTrait
 
         return [
             'results' => $results,
-            'total' => $count
+            'total' => $count,
         ];
     }
 
@@ -178,16 +178,12 @@ trait CrudBehaviorTrait
      */
     public function getById($id): Response
     {
-        //find the info
-        $record = $this->model::findFirstOrFail([
-            'conditions' => $this->model->getPrimaryKey() . '= ?0',
-            'bind' => [$id]
-        ]);
-
-        //get the results and append its relationships
-        $result = $this->appendRelationshipsToResult($this->request, $record);
-
-        return $this->response($this->processOutput($result));
+        $this->additionalSearchFields[] = [$this->model->getPrimaryKey(), ':', $id];
+        $results = $this->processIndex();
+        if (!$result) {
+            throw new Exception('record not found');
+        }
+        return $this->response($results);
     }
 
     /**
@@ -229,7 +225,7 @@ trait CrudBehaviorTrait
     {
         $record = $this->model::findFirstOrFail([
             'conditions' => $this->model->getPrimaryKey() . '= ?0',
-            'bind' => [$id]
+            'bind' => [$id],
         ]);
 
         //process the input
@@ -266,7 +262,7 @@ trait CrudBehaviorTrait
     {
         $record = $this->model::findFirstOrFail([
             'conditions' => $this->model->getPrimaryKey() . '= ?0',
-            'bind' => [$id]
+            'bind' => [$id],
         ]);
 
         if ($this->softDelete == 1) {
